@@ -425,32 +425,32 @@ Tuliskan penjelasan singkat (2-3 kalimat) dalam Bahasa Indonesia yang menjelaska
                 "prospect": prospect,
                 "deal": deal,
                 "best_path": {
-                    "title": "Jalur Emas Hubungan Eksis (Sari AM ➔ Rina GM Ops ➔ Steven Dirut)",
+                    "title": "Golden Path: Existing Relationship (Sari AM ➔ Rina GM Ops ➔ Steven CEO)",
                     "path_nodes": ["E03", "K017", "K089"],
-                    "path_labels": ["Sari Puspita (AM KasirNusa)", "Rina Hapsari (GM Operations P01)", "Steven Wijaya (Dirut P01)"],
+                    "path_labels": ["Sari Puspita (AM KasirNusa)", "Rina Hapsari (GM Operations P01)", "Steven Wijaya (CEO P01)"],
                     "score": 9.2,
                     "decision_maker": {
                         "id": "K017",
                         "name": "Rina Hapsari",
                         "title": "GM Operations P01",
-                        "reason": "Mantan Head of Operations C01 (Kopi Lintas) selama 2021-Agu 2026. Di email I0343, Fajar (IT Mgr) menegaskan keputusan komersial kasir ada di GM Ops baru per 1 Sep 2026."
+                        "reason": "Former Head of Operations at C01 (Kopi Lintas) from 2021-Aug 2026. In email I0343, Fajar (IT Mgr) confirmed that commercial decisions for POS systems lie with the new GM Ops as of Sep 1, 2026."
                     },
                     "edges_explained": [
-                        {"from": "Sari Puspita (AM KasirNusa)", "to": "Rina Hapsari (GM Ops P01)", "reason": "AM C01 selama 3+ tahun dengan 13 interaksi & perpisahan hangat (I0290)", "weight": 10},
-                        {"from": "Rina Hapsari (GM Ops P01)", "to": "Steven Wijaya (Dirut P01)", "reason": "Laporan langsung GM Operations ke Direktur Utama P01", "weight": 9}
+                        {"from": "Sari Puspita (AM KasirNusa)", "to": "Rina Hapsari (GM Ops P01)", "reason": "AM for C01 for 3+ years with 13 interactions & a warm send-off (I0290)", "weight": 10},
+                        {"from": "Rina Hapsari (GM Ops P01)", "to": "Steven Wijaya (CEO P01)", "reason": "Direct report from GM Operations to the CEO of P01", "weight": 9}
                     ],
                     "draft_email": {
                         "to": "rina.hapsari@mandalaritel.co.id",
-                        "subject": "Selamat atas peran baru di Grup Ritel Mandala & Kemitraan Sistem Kasir",
-                        "body": "Halo Ibu Rina,\n\nSelamat atas peran barunya sebagai GM Operations di Grup Ritel Mandala! Mengingat kerja sama yang sangat baik selama Ibu memimpin operasional di Kopi Lintas Nusantara (C01) untuk 42 outlet, tim kami (Bagus Prakoso, Sales Rep) sedang berdiskusi dengan Pak Fajar mengenai modernisasi 60 gerai Mandala.\n\nKami ingin mengundang Ibu berdiskusi singkat untuk menyesuaikan solusi ritel terbaik, termasuk opsi struktur diskon volume 15% (sesuai preseden D-2025-11 untuk 40+ outlet). Kebetulan Sari Puspita (AM C01) juga menyampaikan salam hangat untuk Ibu.\n\nSalam hangat,\nBagus Prakoso & Sari Puspita\nPT KasirNusa Teknologi"
+                        "subject": "Congratulations on the new role at Mandala Retail Group & POS System Partnership",
+                        "body": "Hi Rina,\n\nCongratulations on your new role as GM Operations at Mandala Retail Group! Given our excellent collaboration while you led operations at Kopi Lintas Nusantara (C01) for 42 outlets, our team (Bagus Prakoso, Sales Rep) is currently discussing the modernization of Mandala's 60 outlets with Fajar.\n\nWe'd like to invite you for a brief chat to tailor the best retail solution, including a 15% volume discount structure (as per precedent D-2025-11 for 40+ outlets). Sari Puspita (AM C01) also sends her warmest regards.\n\nBest regards,\nBagus Prakoso & Sari Puspita\nPT KasirNusa Teknologi"
                     }
                 },
                 "alternative_path": {
-                    "title": "Jalur Evaluator Teknis (Bagus SE ➔ Fajar IT Mgr - Bottleneck)",
+                    "title": "Technical Evaluator Path (Bagus SE ➔ Fajar IT Mgr - Bottleneck)",
                     "path_nodes": ["E06", "K052", "K089"],
-                    "path_labels": ["Bagus Prakoso (Sales Exec)", "Fajar Nugraha (IT Mgr P01)", "Steven Wijaya (Dirut P01)"],
+                    "path_labels": ["Bagus Prakoso (Sales Exec)", "Fajar Nugraha (IT Mgr P01)", "Steven Wijaya (CEO P01)"],
                     "score": 6.5,
-                    "bottleneck_reason": "Deal tertahan 20 hari di stage Proposal karena Fajar hanya evaluator teknis tanpa wewenang anggaran komersial (I0343)."
+                    "bottleneck_reason": "Deal stalled for 20 days in the Proposal stage because Fajar is only a technical evaluator without commercial budget authority (I0343)."
                 }
             }
         else:
@@ -458,39 +458,50 @@ Tuliskan penjelasan singkat (2-3 kalimat) dalam Bahasa Indonesia yang menjelaska
                 "prospect": prospect,
                 "deal": deal,
                 "best_path": {
-                    "title": "Jalur Alumni Peer Reference (Wahyu AM ➔ Budi CFO C06 ➔ Hartono Dirut P04)",
+                    "title": "Alumni Peer Reference Path (Wahyu AM ➔ Budi CFO C06 ➔ Hartono CEO P04)",
                     "path_nodes": ["E04", "K116", "K028"],
-                    "path_labels": ["Wahyu Nugroho (AM KasirNusa)", "Budi Santoso (CFO Saiyo Group C06)", "Hartono Gunawan (Dirut P04)"],
+                    "path_labels": ["Wahyu Nugroho (AM KasirNusa)", "Budi Santoso (CFO Saiyo Group C06)", "Hartono Gunawan (CEO P04)"],
                     "score": 8.5,
                     "decision_maker": {
                         "id": "K028",
                         "name": "Hartono Gunawan",
-                        "title": "Direktur Utama P04",
-                        "reason": "Yuli Astuti (Purchasing P04) di I0335 menyatakan Dirut menunda eksekusi sampai mendapat rekomendasi langsung dari sesama pengusaha pengguna KasirNusa."
+                        "title": "CEO P04",
+                        "reason": "Yuli Astuti (Purchasing P04) in I0335 stated that the CEO delayed execution until receiving a direct recommendation from a fellow business owner using KasirNusa."
                     },
                     "edges_explained": [
-                        {"from": "Wahyu Nugroho (AM KasirNusa)", "to": "Budi Santoso (CFO C06)", "reason": "AM Saiyo Group (C06), relasi sangat sehat, NPS 9, rencana 10 cabang baru (I0300)", "weight": 9},
-                        {"from": "Budi Santoso (CFO C06)", "to": "Hartono Gunawan (Dirut P04)", "reason": "Mantan kolega selevel 5 tahun di PT Sentosa Abadi Group (2015-2019, Finance Mgr & GM)", "weight": 10}
+                        {"from": "Wahyu Nugroho (AM KasirNusa)", "to": "Budi Santoso (CFO C06)", "reason": "AM for Saiyo Group (C06), very healthy relationship, NPS 9, planning 10 new branches (I0300)", "weight": 9},
+                        {"from": "Budi Santoso (CFO C06)", "to": "Hartono Gunawan (CEO P04)", "reason": "Former peer colleague for 5 years at PT Sentosa Abadi Group (2015-2019, Finance Mgr & GM)", "weight": 10}
                     ],
                     "draft_email": {
                         "to": "budi.santoso@saiyogroup.co.id",
-                        "subject": "Permohonan Rekomendasi Pengalaman KasirNusa untuk Pak Hartono Gunawan (Nirwana Group)",
-                        "body": "Selamat siang Pak Budi Santoso,\n\nSemoga kabar Bapak dan tim Saiyo Group senantiasa prima. Terima kasih atas kepercayaan Bapak mengoperasikan 30 cabang Saiyo Group bersama KasirNusa.\n\nSaat ini tim kami sedang berdiskusi dengan Nirwana Hotel & Resto yang dipimpin oleh Pak Hartono Gunawan—mantan rekan kerja Bapak di PT Sentosa Abadi Group. Karena Pak Hartono membutuhkan testimoni langsung dari pemimpin bisnis sejenis mengenai keandalan sistem kami, apakah Bapak berkenan memberikan sepatah kata referensi kepada beliau?\n\nSalam hangat,\nWahyu Nugroho & Bagus Prakoso\nPT KasirNusa Teknologi"
+                        "subject": "Request for KasirNusa Experience Recommendation for Mr. Hartono Gunawan (Nirwana Group)",
+                        "body": "Good afternoon Mr. Budi Santoso,\n\nI hope you and the Saiyo Group team are doing great. Thank you for your trust in operating Saiyo Group's 30 branches with KasirNusa.\n\nOur team is currently in discussions with Nirwana Hotel & Resto, led by Mr. Hartono Gunawan—your former colleague at PT Sentosa Abadi Group. Since Mr. Hartono needs a direct testimonial from a fellow business leader regarding our system's reliability, would you be open to providing a brief word of reference to him?\n\nWarm regards,\nWahyu Nugroho & Bagus Prakoso\nPT KasirNusa Teknologi"
                     }
                 },
                 "alternative_path": {
-                    "title": "Jalur Purchasing Standard (Bagus SE ➔ Yuli Purchasing - Bottleneck)",
+                    "title": "Standard Purchasing Path (Bagus SE ➔ Yuli Purchasing - Bottleneck)",
                     "path_nodes": ["E06", "K065", "K028"],
-                    "path_labels": ["Bagus Prakoso (Sales Exec)", "Yuli Astuti (Purchasing P04)", "Hartono Gunawan (Dirut P04)"],
+                    "path_labels": ["Bagus Prakoso (Sales Exec)", "Yuli Astuti (Purchasing P04)", "Hartono Gunawan (CEO P04)"],
                     "score": 5.0,
-                    "bottleneck_reason": "Deal tertahan 30 hari di stage Negosiasi karena Yuli tidak bisa melangkahi Dirut tanpa adanya peer reference dari sesama eksekutif (I0335)."
+                    "bottleneck_reason": "Deal stalled for 30 days in the Negotiation stage because Yuli cannot bypass the CEO without a peer reference from a fellow executive (I0335)."
                 }
             }
 
     def get_full_graph_payload(self):
+        # Filter for a clean, targeted enterprise graph (KasirNusa + P01 + P04 paths)
+        allowed_nodes = {
+            "KASIRNUSA", "P01", "P04", "C01", "C06",
+            "E03", "E06", "E04",
+            "K017", "K089", "K052", 
+            "K116", "K028", "K065"
+        }
+        
+        filtered_nodes = [n for n in self.nodes.values() if n["id"] in allowed_nodes]
+        filtered_edges = [e for e in self.edges if e["from"] in allowed_nodes and e["to"] in allowed_nodes]
+        
         return {
-            "nodes": list(self.nodes.values()),
-            "edges": self.edges
+            "nodes": filtered_nodes,
+            "edges": filtered_edges
         }
 
 if __name__ == "__main__":

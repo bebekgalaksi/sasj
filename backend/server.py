@@ -61,6 +61,27 @@ class RESTRequestHandler(http.server.SimpleHTTPRequestHandler):
             result = graph_engine.solve_custom_path(mode, source, target)
             self.send_json_response(result)
 
+        elif path == "/api/deals":
+            deals = []
+            for d in graph_engine.deals.values():
+                if d.get("account_id", "").startswith("P") and d.get("status") == "Terbuka":
+                    acc = graph_engine.accounts.get(d["account_id"], {})
+                    pf = graph_engine.solve_relationship_path(d["account_id"])
+                    score = pf.get("best_path", {}).get("score", 0.0)
+                    path_nodes = pf.get("best_path", {}).get("path_nodes", [])
+                    hops = len(path_nodes) - 1 if len(path_nodes) > 0 else 0
+                    deals.append({
+                        "id": d["account_id"],
+                        "deal_id": d["deal_id"],
+                        "name": acc.get("nama", acc.get("nama_perusahaan", d["account_id"])),
+                        "nilai_tahunan": int(float(d.get("nilai_tahunan", 0))),
+                        "outlets": int(d.get("outlet", 0)),
+                        "score": score,
+                        "stage": d.get("stage", ""),
+                        "hops": hops
+                    })
+            self.send_json_response(deals)
+
         elif path == "/api/parameter-analysis":
             analysis = {
                 "tim": "Tim 3 - Relationship Path Finder (Sales Track)",
