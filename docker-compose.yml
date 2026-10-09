@@ -1,0 +1,15 @@
+services:
+  web:
+    build: .
+    container_name: kasirnusa-pathfinder
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: kasirnusa-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    depends_on:
+      - web

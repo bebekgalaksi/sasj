@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KASIRNUSA // Context Graph — Relationship Path Finder (Tim 3)</title>
+  <meta name="description" content="Dashboard Analisis Context Graph Tim 3: Menemukan jalur terbaik menuju decision maker untuk prospek P01 dan P04 KasirNusa.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              800: '#1E40AF',
+              900: '#1E3A8A',
+              950: '#0F2356'
+            },
+            slate: {
+              850: '#151E2E',
+              900: '#0F172A',
+              950: '#0B0F19'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace']
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
+            'card-hover': '0 20px 30px -10px rgba(37, 99, 235, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04)',
+            'glow-blue': '0 0 50px -10px rgba(37, 99, 235, 0.45)',
+            'pill': '0 2px 8px rgba(37, 99, 235, 0.08)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FFFFFF;
+      color: #0F172A;
+      overflow-x: hidden;
+    }
+
+    .hero-glow {
+      background: radial-gradient(circle at 50% 100%, #2563EB 0%, #1D4ED8 40%, rgba(29, 78, 216, 0) 75%);
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background-color: #EFF6FF;
+      border: 1px solid #DBEAFE;
+      color: #2563EB;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 99px;
+    }
+
+    .evidence-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      background-color: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      border-radius: 4px;
+      font-family: "Space Grotesk", monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1D4ED8;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-slate-900 bg-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 right-5 sm:right-6 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700">
+    <div id="toast-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></div>
+    <span id="toast-text" class="text-xs font-semibold font-sans">Jalur relasi berhasil dihitung!</span>
+  </div>
+
+  <!-- Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-2.5 cursor-pointer">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 font-bold">
+          KN
+        </div>
+        <div>
+          <span class="font-extrabold text-xl tracking-tight text-slate-900">KASIRNUSA<span class="text-blue-600">.</span></span>
+          <span class="block text-[10px] font-mono tracking-wider uppercase text-blue-600 font-bold">Tim 3 · Relationship Intelligence</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+        <a href="#analisis-eksekutif" class="hover:text-blue-600 transition-colors">Analisis Eksekutif</a>
+        <a href="#deepdive-p01" class="hover:text-blue-600 transition-colors">P01 Mandala</a>
+        <a href="#deepdive-p04" class="hover:text-blue-600 transition-colors">P04 Nirwana</a>
+        <a href="#path-finder" class="hover:text-blue-600 transition-colors text-blue-600 flex items-center gap-1">
+          <span>⚡</span> Path Finder
+        </a>
+        <a href="#demo" class="hover:text-blue-600 transition-colors">Peta Graph</a>
+        <a href="#preseden" class="hover:text-blue-600 transition-colors">Log Keputusan</a>
+      </nav>
+
+      <!-- Action Buttons & Mobile Hamburger -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="openModal('summary-modal')" class="hidden sm:inline-block px-4 py-2 rounded-full text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all">
+          📋 Summary Juri
+        </button>
+        <a href="#path-finder" class="hidden sm:inline-block cursor-pointer px-5 py-2.5 rounded-full text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25 transition-all active:scale-95">
+          Hitung Jalur ➔
+        </a>
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700" aria-label="Toggle navigation">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-menu" class="hidden md:hidden px-4 pb-4 pt-2 border-t border-slate-100 space-y-2 bg-white/95">
+      <a href="#analisis-eksekutif" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">Analisis Eksekutif</a>
+      <a href="#deepdive-p01" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">P01 Mandala</a>
+      <a href="#deepdive-p04" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">P04 Nirwana</a>
+      <a href="#path-finder" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-blue-600">⚡ Path Finder</a>
+      <a href="#demo" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">Peta Graph</a>
+      <a href="#preseden" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">Log Keputusan</a>
+      <div class="pt-2 flex items-center gap-2">
+        <button onclick="openModal('summary-modal'); toggleMobileMenu();" class="w-1/2 py-2 rounded-full text-xs font-bold text-slate-700 bg-slate-100 text-center">
+          📋 Summary
+        </button>
+        <a href="#path-finder" onclick="toggleMobileMenu()" class="w-1/2 py-2 rounded-full text-xs font-bold bg-blue-600 text-white text-center">
+          Hitung ➔
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section (Matching base_design.html layout) -->
+  <section class="relative pt-12 pb-24 overflow-hidden">
+    
+    <!-- Top Hero Content -->
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      
+      <!-- Pill Badge -->
+      <div class="inline-block mb-4">
+        <div class="pill-badge bg-blue-50/70 border-blue-100 text-blue-600 uppercase tracking-widest text-[11px] px-3.5 py-1 font-bold">
+          🏆 HACKATHON CONTEXT GRAPH · TRACK SALES · TIM 3
+        </div>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]">
+        Lewat Siapa Jalur Terbaik <br>
+        Menuju <span class="text-blue-600">Decision Maker</span>?
+      </h1>
+      
+      <!-- Subtitle -->
+      <p class="mt-5 text-base sm:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
+        Dashboard analisis menghubungkan 6 sumber data KasirNusa untuk mengidentifikasi pengambil keputusan sebenarnya di <strong>P01 (Grup Ritel Mandala)</strong> dan <strong>P04 (Nirwana Hotel & Resto)</strong> serta menyusun draft pesan intro terkuat.
+      </p>
+
+      <!-- Hero Action Buttons -->
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#path-finder" class="cursor-pointer w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 transition-all active:scale-95">
+          ⚡ Coba Interactive Path Finder
+        </a>
+        <a href="#analisis-eksekutif" class="cursor-pointer w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
+          📊 Lihat Analisis Komparatif
+        </a>
+      </div>
+    </div>
+
+    <!-- Curved Blue Ambient Backdrop & Floating Dashboard Container (Exact match to base_design.html) -->
+    <div class="relative mt-16 max-w-6xl mx-auto px-4 sm:px-6">
+      
+      <!-- Vivid Blue Curved Mesh / Backdrop -->
+      <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[95%] h-[340px] sm:h-[460px] bg-gradient-to-t from-blue-600 via-blue-600/70 to-transparent rounded-[50px] sm:rounded-[70px] blur-xl opacity-90 -z-10 pointer-events-none"></div>
+
+      <!-- Dashboard Mockup Card -->
+      <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden">
+        
+        <!-- Mockup Header Bar -->
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div class="flex items-center gap-3">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-rose-400"></div>
+              <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+              <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+            </div>
+            <span class="text-xs font-bold text-slate-700 ml-2 font-mono">Executive Dashboard · Context Graph Intelligence</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 font-mono">
+              <span>Snapshot: 1 Okt 2026</span>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 text-xs font-bold">
+              T3
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 sm:p-8 bg-slate-50/30">
+          
+          <!-- Welcome Message -->
+          <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 class="text-xl font-extrabold text-slate-900">Radar Peluang Sales Pipeline</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Sintesis data CRM, 350 interaksi, riwayat kerja, kontrak, dan log keputusan.</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 self-start">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              6 Sumber Data Terhubung
+            </span>
+          </div>
+
+          <!-- 4 Top Stat Cards (base_design.html style) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            
+            <!-- Card 1 (Blue) -->
+            <div class="bg-blue-600 p-4 rounded-2xl text-white shadow-md shadow-blue-500/20">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white uppercase font-mono">Pipeline Prioritas</span>
+                <span class="text-[10px] font-bold text-blue-100">60% Total</span>
+              </div>
+              <div class="text-2xl font-extrabold tracking-tight font-mono">Rp 399 Jt</div>
+              <div class="text-xs text-blue-100 mt-0.5">P01 Mandala + P04 Nirwana</div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 uppercase font-mono">P01 Golden Path</span>
+                <span class="text-[10px] font-bold text-emerald-600 font-mono">9.2 / 10</span>
+              </div>
+              <div class="text-2xl font-extrabold tracking-tight text-slate-900 font-mono">Sari ➔ Rina</div>
+              <div class="text-xs text-slate-500 mt-0.5">AM C01 3+ thn ➔ GM Ops Mandala</div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600 uppercase font-mono">P04 Golden Path</span>
+                <span class="text-[10px] font-bold text-purple-600 font-mono">8.5 / 10</span>
+              </div>
+              <div class="text-2xl font-extrabold tracking-tight text-slate-900 font-mono">Wahyu ➔ Budi</div>
+              <div class="text-xs text-slate-500 mt-0.5">Overlap 5 thn Sentosa ➔ Dirut P04</div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 uppercase font-mono">Akselerasi</span>
+                <span class="text-[10px] font-bold text-emerald-600 font-mono">+45% Lift</span>
+              </div>
+              <div class="text-2xl font-extrabold tracking-tight text-slate-900 font-mono">7-10 Hari</div>
+              <div class="text-xs text-slate-500 mt-0.5">Memangkas siklus 45 hari macet</div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Split View: Forecast Win-Rate Chart + Active Bridges -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Chart Card -->
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h4 class="font-bold text-sm text-slate-900">Perbandingan Tingkat Konversi Closing Deal</h4>
+                  <p class="text-[11px] text-slate-400">Peluang closing deal berdasarkan metode pendekatan sales</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-[10px] font-bold border border-blue-200">
+                  Data-Driven Strategy
+                </span>
+              </div>
+
+              <!-- Bar Visualization -->
+              <div class="space-y-4 pt-2">
+                <div>
+                  <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                    <span>Cold Outreach Gatekeeper (Bagus ke IT Mgr / Purchasing)</span>
+                    <span class="text-rose-500 font-mono font-bold">15% (Stuck 20-30 Hari)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-rose-400 h-3 rounded-full w-[15%]"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                    <span>P04 Peer Referral (Wahyu AM ➔ Budi CFO C06 ➔ Hartono Dirut P04)</span>
+                    <span class="text-purple-600 font-mono font-bold">78% (Unblock Syarat Rekanan)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-purple-600 h-3 rounded-full w-[78%]"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                    <span>P01 Champion Bridge (Sari AM ➔ Rina GM Ops + Preseden D-2025-11)</span>
+                    <span class="text-blue-600 font-mono font-bold">92% (Decision Maker Validated)</span>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-3">
+                    <div class="bg-blue-600 h-3 rounded-full w-[92%]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Active Bridges Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-bold text-sm text-slate-900">Jalur Relasi Terverifikasi</h4>
+                  <a href="#path-finder" class="text-[11px] text-blue-600 font-semibold hover:underline">Hitung ⚡</a>
+                </div>
+
+                <div class="space-y-2.5">
+                  <div onclick="selectPreset('E03', 'K017')" class="cursor-pointer p-2.5 rounded-xl border border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/40 transition-all flex items-center justify-between">
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">Sari Puspita ➔ Rina Hapsari</div>
+                      <div class="text-[10px] text-slate-400">P01 Mandala • Skor 9.2/10</div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">Golden</span>
+                  </div>
+
+                  <div onclick="selectPreset('E04', 'K028')" class="cursor-pointer p-2.5 rounded-xl border border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/40 transition-all flex items-center justify-between">
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">Wahyu ➔ Budi ➔ Hartono</div>
+                      <div class="text-[10px] text-slate-400">P04 Nirwana • Overlap 5 thn</div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">Golden</span>
+                  </div>
+
+                  <div onclick="selectPreset('E06', 'K052')" class="cursor-pointer p-2.5 rounded-xl border border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-amber-50/40 transition-all flex items-center justify-between">
+                    <div>
+                      <div class="text-xs font-bold text-slate-800">Bagus ➔ Fajar IT Manager</div>
+                      <div class="text-[10px] text-slate-400">P01 Evaluasi Teknis • Skor 6.5</div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">Alternatif</span>
+                  </div>
+                </div>
+              </div>
+
+              <a href="#path-finder" class="mt-4 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors text-center shadow-sm shadow-blue-500/20">
+                Uji di Path Finder ➔
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- TABEL ANALISIS EKSEKUTIF (SIDE-BY-SIDE ANALYSIS)        -->
+  <!-- ======================================================== -->
+  <section id="analisis-eksekutif" class="py-16 bg-slate-50 border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="pill-badge mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <span>Analisis Mendalam</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Perbandingan Jalur: Cold Outreach vs Context Graph
+        </h2>
+        <p class="mt-3 text-sm sm:text-base text-slate-500">
+          Analisis mengapa pipeline macet dan bagaimana menghubungkan 6 sumber data membuka jalan pintas ke decision maker.
+        </p>
+      </div>
+
+      <!-- Comparative Table Card -->
+      <div class="bg-white rounded-3xl border border-slate-200/90 shadow-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-mono uppercase text-[11px]">
+                <th class="py-4 px-6">Akun Prospek</th>
+                <th class="py-4 px-6">Jalur Cold Gatekeeper (Stuck)</th>
+                <th class="py-4 px-6">Jalur Graph Terkuat (Rekomendasi)</th>
+                <th class="py-4 px-6">Bukti Empiris Lintas Sumber</th>
+                <th class="py-4 px-6">Rekomendasi Tindak Lanjut</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700 font-sans">
+              <!-- Row P01 -->
+              <tr class="hover:bg-blue-50/20 transition-colors">
+                <td class="py-5 px-6 font-bold text-slate-900">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-mono text-[10px] flex items-center justify-center font-bold">P01</span>
+                    <span class="text-sm">Grup Ritel Mandala</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-normal mt-1">Minimarket • 60 Outlet • Rp 252 Jt/th</div>
+                </td>
+                <td class="py-5 px-6">
+                  <div class="text-rose-600 font-bold">Bagus (Sales) ➔ Fajar (IT Mgr)</div>
+                  <div class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                    Tertahan 20 hari di stage Proposal karena Fajar hanya mengevaluasi teknis, bukan pengambil keputusan komersial.
+                  </div>
+                </td>
+                <td class="py-5 px-6">
+                  <div class="text-blue-600 font-bold text-sm">Sari (AM) ➔ Rina (GM Ops) ➔ Steven (Dirut)</div>
+                  <div class="text-[11px] font-semibold text-emerald-600 mt-1">Skor Kekuatan: 9.2 / 10</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">3+ tahun kolaborasi erat di C01 (13 interaksi positif).</div>
+                </td>
+                <td class="py-5 px-6 space-y-1">
+                  <div><span class="evidence-badge">I0343</span> Fajar: Keputusan ada di GM Ops baru.</div>
+                  <div><span class="evidence-badge">I0290</span> Email pamit Rina sangat hangat.</div>
+                  <div><span class="evidence-badge">History</span> K017 pindah dari C01 ke P01 (Sep 2026).</div>
+                </td>
+                <td class="py-5 px-6">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">Warm Intro</span>
+                  <div class="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
+                    Sari kontak Rina + tawarkan diskon volume 15% (Preseden D-2025-11).
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row P04 -->
+              <tr class="hover:bg-purple-50/20 transition-colors">
+                <td class="py-5 px-6 font-bold text-slate-900">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 font-mono text-[10px] flex items-center justify-center font-bold">P04</span>
+                    <span class="text-sm">Nirwana Hotel &amp; Resto</span>
+                  </div>
+                  <div class="text-[11px] text-slate-400 font-normal mt-1">Hospitality • 35 Outlet • Rp 147 Jt/th</div>
+                </td>
+                <td class="py-5 px-6">
+                  <div class="text-rose-600 font-bold">Bagus (Sales) ➔ Yuli (Purchasing)</div>
+                  <div class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                    Tertahan 30 hari di stage Negosiasi karena Dirut minta referensi dari pelaku usaha sejenis sebelum tanda tangan.
+                  </div>
+                </td>
+                <td class="py-5 px-6">
+                  <div class="text-purple-600 font-bold text-sm">Wahyu (AM) ➔ Budi (CFO C06) ➔ Hartono (Dirut)</div>
+                  <div class="text-[11px] font-semibold text-purple-600 mt-1">Skor Kekuatan: 8.5 / 10</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">Overlap 5 tahun kerja bersama di PT Sentosa Abadi.</div>
+                </td>
+                <td class="py-5 px-6 space-y-1">
+                  <div><span class="evidence-badge">I0335</span> Yuli: Dirut minta rekomendasi peer.</div>
+                  <div><span class="evidence-badge">History</span> K116 &amp; K028 di Sentosa Abadi (2015–2019).</div>
+                  <div><span class="evidence-badge">I0300</span> Saiyo C06 puas &amp; ekspansi 10 cabang.</div>
+                </td>
+                <td class="py-5 px-6">
+                  <span class="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-bold">Peer Reference</span>
+                  <div class="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
+                    Wahyu minta kesediaan Budi memberikan referensi rekanan personal ke Hartono.
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Bonus Cross-Track Synthesis Card -->
+      <div class="p-8 rounded-3xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white shadow-xl">
+        <div class="flex items-center justify-between pb-4 border-b border-indigo-800/80">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-amber-400 text-slate-900 font-extrabold flex items-center justify-center text-sm">★</span>
+            <div>
+              <h3 class="text-base font-bold">Temuan Lintas Track Mandiri (Bonus Nilai +5)</h3>
+              <p class="text-xs text-indigo-200">Sintesis Lintas Divisi: Customer Success Churn ↔ Sales Pipeline Growth</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200 text-xs font-mono font-bold border border-indigo-400/30">
+            Cross-Track Synthesis
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 text-xs leading-relaxed text-indigo-100">
+          <div class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+            <h4 class="font-bold text-rose-300 text-sm">1. CS Churn C01 ➔ Menjadi Peluang Emas Sales P01:</h4>
+            <p>
+              Kepindahan Rina Hapsari membuat akun C01 (Kopi Lintas) berisiko churn: CFO baru Yoga Pratama mulai melirik vendor kompetitor KasirPro (I0331) dan mempertanyakan janji integrasi akuntansi FEAT-07. Namun bagi divisi Sales, kepindahan Rina adalah peluang emas: ia membawa kepercayaan produk ke 60 gerai Mandala bernilai <strong>Rp 252 juta/tahun</strong>.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+            <h4 class="font-bold text-emerald-300 text-sm">2. CS Advocacy C06 ➔ Menyelamatkan Negosiasi Sales P04:</h4>
+            <p>
+              Keberhasilan tim Customer Success mendampingi Saiyo Group C06 (NPS 9, health score hijau, persiapan ekspansi 10 cabang baru I0300) dikonversi secara langsung oleh Sales menjadi amunisi peer reference untuk meloloskan syarat persetujuan Direktur Utama P04 (Rp 147 juta).
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- DEEP DIVE P01 & P04 SHOWCASE                             -->
+  <!-- ======================================================== -->
+  <section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+    
+    <!-- P01 Deep Dive Card -->
+    <div id="deepdive-p01" class="p-8 sm:p-10 rounded-3xl bg-white border border-slate-200/90 shadow-card">
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-100 gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-blue-600 text-white font-extrabold text-xl flex items-center justify-center font-mono shadow-md shadow-blue-500/20">
+            P01
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-2xl font-extrabold text-slate-900">Grup Ritel Mandala</h3>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">Stage: Proposal (20 hari)</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              Minimarket • Rencana 60 Outlet • Potensi Tahunan: <strong>Rp 252.000.000</strong>
+            </p>
+          </div>
+        </div>
+        <button onclick="copyToClipboard('draft-p01')" class="px-5 py-2.5 rounded-full text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25 transition-all flex items-center gap-2 active:scale-95">
+          <span>📋 Salin Draft Pesan P01</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <!-- Analisis -->
+        <div class="space-y-4 text-xs leading-relaxed text-slate-600">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+            <h4 class="font-bold text-slate-900 text-sm">Konteks Decision Maker:</h4>
+            <p>
+              Bagus Prakoso (Sales) tertahan karena Fajar Nugraha (IT Mgr) bukan penentu anggaran. Dalam email <span class="evidence-badge">I0343</span>, Fajar menegaskan: <em>"Keputusan pengadaan sistem kasir ada di GM Operations baru yang bergabung awal September."</em> Rina Hapsari adalah GM Operations baru tersebut.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 space-y-1.5 text-blue-900">
+            <h4 class="font-bold text-blue-950 text-sm">Alur Pendekatan Terkuat (Skor: 9.2 / 10):</h4>
+            <p>
+              Sari Puspita (AM C01) memiliki ikatan profesional 3+ tahun dengan Rina saat di Kopi Lintas (13 interaksi positif). Hubungan berakhir sangat hangat saat Rina pamit (<span class="evidence-badge">I0290</span>). Sari mengirim ucapan selamat personal, memvalidasi demo Fajar, lalu menawarkan demo eksekutif bersama Bagus.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-900 space-y-1">
+            <h4 class="font-bold text-amber-950">Preseden Log Keputusan &amp; Mitigasi Risiko:</h4>
+            <p>• <strong>Preseden D-2025-11:</strong> Diskon 15% disetujui VP Sales untuk 42 outlet C01. Ajukan diskon 15%–18% untuk 60 outlet Mandala.</p>
+            <p>• <strong>Risiko FEAT-07:</strong> Rina tahu integrasi akuntansi tertunda di C01 (<span class="evidence-badge">I0258</span>). Jangan beri janji baru, paparkan roadmap secara transparan.</p>
+          </div>
+        </div>
+
+        <!-- Draft Email Box -->
+        <div class="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800 shadow-md">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 text-xs font-mono text-slate-400">
+            <span>DRAFT PESAN INTRO (OUTPUT WAJIB)</span>
+            <span class="text-blue-400 font-bold">Email Siap Kirim</span>
+          </div>
+          <div class="text-xs font-mono text-slate-400 py-2.5 border-b border-slate-800">
+            Dari: Sari Puspita (sari@kasirnusa.id)<br>
+            Kepada: Rina Hapsari (rina.hapsari@mandalaritel.co.id)<br>
+            Subjek: Selamat atas posisi barunya di Grup Ritel Mandala, Bu Rina!
+          </div>
+          <div id="draft-p01" class="text-xs text-slate-200 mt-4 leading-relaxed whitespace-pre-line font-sans">
+Bu Rina yang baik,
+
+Selamat atas posisi barunya sebagai GM Operations di Grup Ritel Mandala! Senang sekali mendengar kabar baik ini.
+
+Saya dengar Mandala sedang mencari sistem kasir modern untuk 60 gerai minimarket. Kebetulan Pak Fajar dari tim IT Mandala sudah melihat demo teknis kami bersama Mas Bagus Prakoso dan responsnya sangat positif.
+
+Mengingat Ibu tentu sudah paham betul kapabilitas dan keandalan KasirNusa dari pengalaman operasional 42 outlet Kopi Lintas Nusantara selama 3 tahun terakhir, mungkin Ibu berkenan jika kami jadwalkan sesi presentasi eksekutif singkat bersama tim manajemen Mandala?
+
+Untuk kebutuhan 60 gerai, kami juga siap menyiapkan skema komersial khusus skala volume enterprise. Kalau Ibu ada waktu luang minggu depan, saya dan Mas Bagus siap berkunjung ke kantor Mandala.
+
+Salam hangat,
+Sari Puspita
+Account Manager · KasirNusa
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- P04 Deep Dive Card -->
+    <div id="deepdive-p04" class="p-8 sm:p-10 rounded-3xl bg-white border border-slate-200/90 shadow-card">
+      <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-100 gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-purple-600 text-white font-extrabold text-xl flex items-center justify-center font-mono shadow-md shadow-purple-500/20">
+            P04
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-2xl font-extrabold text-slate-900">Nirwana Hotel &amp; Resto</h3>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">Stage: Negosiasi (30 hari macet)</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              Hospitality • 35 Outlet • Potensi Tahunan: <strong>Rp 147.000.000</strong>
+            </p>
+          </div>
+        </div>
+        <button onclick="copyToClipboard('draft-p04')" class="px-5 py-2.5 rounded-full text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/25 transition-all flex items-center gap-2 active:scale-95">
+          <span>📋 Salin Draft Pesan P04</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        <!-- Analisis -->
+        <div class="space-y-4 text-xs leading-relaxed text-slate-600">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+            <h4 class="font-bold text-slate-900 text-sm">Akar Masalah Negosiasi 30 Hari Macet:</h4>
+            <p>
+              Yuli Astuti (Purchasing Mgr) menyatakan via email <span class="evidence-badge">I0335</span>: <em>"Direktur Utama kami minta rekomendasi dari pengguna yang mirip dengan kami sebelum tanda tangan kontrak."</em> Direktur Utama P04 adalah <strong>Hartono Gunawan (K028)</strong>.
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-1.5 text-purple-900">
+            <h4 class="font-bold text-purple-950 text-sm">Temuan Koneksi Alumni 5 Tahun (Skor: 8.5 / 10):</h4>
+            <p>
+              Riwayat kerja membuktikan Hartono dan <strong>Budi Santoso (K116, CFO C06 Saiyo Group)</strong> bekerja bersama selama 5 tahun (2015–2019) di <strong>PT Sentosa Abadi Group</strong>. Saiyo Group adalah jaringan resto Padang 30 outlet dengan NPS 9 yang sangat puas dan sedang ekspansi 10 outlet Jakarta (<span class="evidence-badge">I0300</span>).
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-slate-700 space-y-1">
+            <h4 class="font-bold text-slate-900">Solusi Taktis Kolaborasi Sales-CS:</h4>
+            <p>1. Wahyu Nugroho (AM C06) memohon izin Budi Santoso menjadi kontak referensi rekanan.</p>
+            <p>2. Bagus Prakoso (Sales) menyertakan review Budi ke Hartono Gunawan untuk menutup deal Rp 147 juta.</p>
+          </div>
+        </div>
+
+        <!-- Draft Email Box -->
+        <div class="bg-slate-900 rounded-2xl p-6 text-white border border-slate-800 shadow-md">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800 text-xs font-mono text-slate-400">
+            <span>DRAFT PESAN REFERRAL (OUTPUT WAJIB)</span>
+            <span class="text-purple-400 font-bold">Email Siap Kirim</span>
+          </div>
+          <div class="text-xs font-mono text-slate-400 py-2.5 border-b border-slate-800">
+            Dari: Wahyu Nugroho (wahyu@kasirnusa.id)<br>
+            Kepada: Budi Santoso (budi.santoso@saiyo.co.id)<br>
+            Subjek: Permohonan Referensi Rekanan - Pak Hartono Gunawan (Nirwana Resto)
+          </div>
+          <div id="draft-p04" class="text-xs text-slate-200 mt-4 leading-relaxed whitespace-pre-line font-sans">
+Selamat siang Pak Budi,
+
+Semoga Pak Budi dan tim Saiyo Group senantiasa sehat dan lancar dalam persiapan ekspansi 10 cabang baru ke Jakarta.
+
+Pak Budi, saat ini tim kami sedang dalam tahap finalisasi pengadaan sistem POS untuk Nirwana Hotel & Resto (35 outlet) yang dipimpin oleh Pak Hartono Gunawan. Dari riwayat profesional, kami mengetahui bahwa Bapak dan Pak Hartono pernah berkolaborasi erat di PT Sentosa Abadi Group.
+
+Pak Hartono saat ini membutuhkan referensi pengalaman nyata dari rekan pelaku usaha hospitality/F&B yang sudah menggunakan sistem KasirNusa. Apakah Bapak berkenan bila nama Bapak kami cantumkan sebagai kontak referensi rekanan untuk Pak Hartono?
+
+Dukungan Bapak akan sangat berharga bagi kami. Terima kasih banyak atas kepercayaan Pak Budi selama ini pada KasirNusa.
+
+Salam hormat,
+Wahyu Nugroho
+Account Manager · KasirNusa
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- INTERACTIVE PATH FINDER WIDGET                          -->
+  <!-- ======================================================== -->
+  <section id="path-finder" class="py-20 bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold mb-3">
+          <span>⚡</span>
+          <span>Engine Deterministik Pure JavaScript (BFS)</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+          Interactive Relationship Path Finder
+        </h2>
+        <p class="mt-2 text-sm text-slate-400">
+          Pilih titik awal dan target decision maker. Sistem akan menghitung jalur terpendek, skor relasi, dan strategi pendekatan.
+        </p>
+
+        <!-- Presets -->
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs">
+          <button onclick="applyPreset('E03', 'K017')" class="px-4 py-2 rounded-full font-bold bg-blue-600 hover:bg-blue-500 text-white transition-all shadow-sm">
+            🥇 P01 Golden: Sari ➔ Rina Hapsari
+          </button>
+          <button onclick="applyPreset('E04', 'K028')" class="px-4 py-2 rounded-full font-bold bg-purple-600 hover:bg-purple-500 text-white transition-all shadow-sm">
+            🥇 P04 Golden: Wahyu ➔ Budi ➔ Hartono
+          </button>
+          <button onclick="applyPreset('E06', 'K052')" class="px-4 py-2 rounded-full font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all">
+            🥈 P01 Alt: Bagus ➔ Fajar IT
+          </button>
+          <button onclick="applyPreset('E06', 'K065')" class="px-4 py-2 rounded-full font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all">
+            🥈 P04 Alt: Bagus ➔ Yuli Purchasing
+          </button>
+        </div>
+      </div>
+
+      <!-- Controls Bento Box -->
+      <div class="bg-slate-850 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-6">
+        
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end pb-6 border-b border-slate-800">
+          <div class="md:col-span-5 space-y-2">
+            <label class="text-xs font-bold font-mono uppercase tracking-wider text-blue-400">Titik Awal (KasirNusa / AM / Partner)</label>
+            <select id="finder-source" class="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <!-- Injected by JS -->
+            </select>
+          </div>
+
+          <div class="hidden md:flex md:col-span-1 items-center justify-center pb-3 text-slate-500 font-bold text-lg">
+            ➔
+          </div>
+
+          <div class="md:col-span-4 space-y-2">
+            <label class="text-xs font-bold font-mono uppercase tracking-wider text-emerald-400">Target Decision Maker / Akun</label>
+            <select id="finder-target" class="w-full h-11 px-4 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <!-- Injected by JS -->
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <button onclick="calculateAndDisplayPath()" class="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 active:scale-95">
+              <span>⚡ Hitung Jalur</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Container -->
+        <div id="finder-result" class="space-y-6">
+          <!-- Injected by JS -->
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- CANVAS GRAPH STAGE (Exact match to base_design.html)    -->
+  <!-- ======================================================== -->
+  <section id="demo" class="py-24 bg-gradient-to-b from-blue-700 via-blue-800 to-slate-900 text-white relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-ping"></span>
+          <span>Peta Relasi Interaktif</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+          Visualisasi Context Graph KasirNusa
+        </h2>
+        <p class="mt-3 text-sm sm:text-base text-blue-100 max-w-xl mx-auto">
+          Eksplorasi interaktif seluruh entitas: Karyawan, Prospek, Decision Maker, Pelanggan Referensi, dan Riwayat Kerja.
+        </p>
+
+        <!-- Filter Controls (base_design.html style) -->
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <button onclick="setGraphFilter('all')" id="filter-all" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-blue-700 shadow-md">
+            Unified Graph (38 Node)
+          </button>
+          <button onclick="setGraphFilter('p01')" id="filter-p01" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all">
+            P01 Mandala Focus
+          </button>
+          <button onclick="setGraphFilter('p04')" id="filter-p04" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all">
+            P04 Nirwana Focus
+          </button>
+          <button onclick="resetGraphPhysics()" class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-white/30 text-white hover:bg-white/10">
+            ↺ Re-center
+          </button>
+        </div>
+      </div>
+
+      <!-- Graph Stage Box (base_design.html baris 871) -->
+      <div class="relative w-full h-[540px] rounded-3xl bg-slate-900/90 border border-white/15 overflow-hidden shadow-2xl backdrop-blur-md">
+        
+        <!-- Live HUD Status -->
+        <div class="absolute top-4 left-4 z-10 pointer-events-none flex flex-col gap-2">
+          <div class="px-3 py-1.5 rounded-lg bg-black/50 border border-white/10 text-xs font-mono text-blue-200">
+            ACTIVE NODES: <span id="hud-nodes" class="text-white font-bold">38</span> • TOTAL EDGES: <span class="text-emerald-400 font-bold">42</span>
+          </div>
+          <div class="px-3 py-1.5 rounded-lg bg-black/50 border border-white/10 text-xs font-mono text-slate-300">
+            CURRENT INSPECT: <span id="hud-active" class="text-blue-400 font-bold">Sari Puspita (AM)</span>
+          </div>
+        </div>
+
+        <canvas id="graphCanvas" class="w-full h-full cursor-grab active:cursor-grabbing block"></canvas>
+
+        <!-- Node Details Floating Drawer (base_design.html baris 886) -->
+        <div id="node-inspector" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:w-96 p-5 rounded-2xl bg-slate-900/95 border border-white/20 shadow-2xl backdrop-blur-xl">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+            <span id="inspect-category" class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+              KASIRNUSA INTERNAL
+            </span>
+            <span class="text-[10px] font-mono text-slate-400">ID: <b id="inspect-id" class="text-emerald-400">E03</b></span>
+          </div>
+          <h4 id="inspect-title" class="font-bold text-sm text-white">Sari Puspita</h4>
+          <p id="inspect-desc" class="text-xs text-slate-300 mt-1 leading-relaxed">
+            Account Manager C01 Kopi Lintas Nusantara &amp; C03 Apotek Sehat Sentosa. Memiliki ikatan kerja erat 3+ tahun dengan Rina Hapsari.
+          </p>
+          <div class="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+            <span id="inspect-role" class="text-slate-400 text-[11px]">Role: Account Manager</span>
+            <button onclick="focusInFinder()" class="text-blue-400 hover:text-blue-300 font-semibold text-xs flex items-center gap-1">
+              Fokuskan di Finder ⚡
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- 4 VIBRANT STAT CARDS (base_design.html baris 942)        -->
+  <!-- ======================================================== -->
+  <section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      <!-- Stat 1: Cyan -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-500 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight font-mono">Rp 252 Jt</div>
+        <div class="text-sm font-semibold mt-1">Potensi P01 Mandala</div>
+        <p class="text-xs text-cyan-50 mt-2 leading-relaxed opacity-90">
+          Minimarket 60 outlet dengan pengadaan sistem kasir baru di bawah GM Ops Rina Hapsari.
+        </p>
+      </div>
+
+      <!-- Stat 2: Purple -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight font-mono">Rp 147 Jt</div>
+        <div class="text-sm font-semibold mt-1">Potensi P04 Nirwana</div>
+        <p class="text-xs text-indigo-50 mt-2 leading-relaxed opacity-90">
+          Hospitality 35 outlet, deal dibuka kembali melalui peer reference CFO Budi Santoso (C06).
+        </p>
+      </div>
+
+      <!-- Stat 3: Pink -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight font-mono">5 Tahun</div>
+        <div class="text-sm font-semibold mt-1">Overlap Sentosa Abadi</div>
+        <p class="text-xs text-pink-50 mt-2 leading-relaxed opacity-90">
+          Riwayat kerja bersama Budi Santoso &amp; Hartono Gunawan (2015–2019) di PT Sentosa Abadi.
+        </p>
+      </div>
+
+      <!-- Stat 4: Royal Blue -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight font-mono">15% Diskon</div>
+        <div class="text-sm font-semibold mt-1">Preseden D-2025-11</div>
+        <p class="text-xs text-blue-50 mt-2 leading-relaxed opacity-90">
+          Preseden sah persetujuan diskon skala volume untuk kontrak tahunan enterprise KasirNusa.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- LOG KEPUTUSAN & PRESEDEN DISKON                          -->
+  <!-- ======================================================== -->
+  <section id="preseden" class="py-20 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="pill-badge mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <span>Log Keputusan (decision_log.csv)</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Preseden Eksekutif &amp; Aturan Diskon VP Sales
+        </h2>
+        <p class="mt-3 text-sm text-slate-500">
+          Aturan KasirNusa: Diskon di atas 10% wajib disetujui VP Sales Andi Wiratama dan dicatat pada log keputusan.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <div class="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-emerald-600">D-2025-11</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-mono text-[10px] font-bold border border-emerald-200">DISETUJUI (15%)</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Diskon Volume C01 (42 Outlet)</h4>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            <strong>Justifikasi:</strong> Volume besar (>30 outlet) dan komitmen tahunan.<br>
+            <strong>Relevansi P01:</strong> Menjadi dasar hukum yang sah mengusulkan diskon volume 15%–18% untuk 60 gerai Mandala.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-rose-600">D-2025-02</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-mono text-[10px] font-bold border border-rose-200">DITOLAK (20%)</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Tolak Diskon 20% C23</h4>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            <strong>Alasan:</strong> Permintaan menyamai kompetitor KasirPro ditolak tegas karena merusak harga pasar.<br>
+            <strong>Pelajaran:</strong> Jangan beri diskon 20% pada prospek yang membawa tawaran kompetitor murah.
+          </p>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-white border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-xs font-bold text-blue-600">D-2025-06</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 font-mono text-[10px] font-bold border border-blue-200">ALTERNATIF PILOT</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Strategi Pilot Menang Kembali</h4>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            <strong>Solusi:</strong> Menawarkan paket pilot Starter 6 outlet tanpa merusak harga, lalu ekspansi bertahap hingga sukses menang kembali di September 2025.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-100 bg-white py-12 text-center text-xs text-slate-400">
+    KASIRNUSA CONTEXT GRAPH • TIM 3 HACKATHON SALES TRACK • Hak Cipta 2026
+  </footer>
+
+  <!-- Modal: Summary Juri -->
+  <div id="summary-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="w-full max-w-2xl bg-white rounded-3xl p-8 flex flex-col shadow-2xl border border-slate-200 max-h-[85vh] overflow-hidden">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Summary Eksekutif Evaluasi Juri</h3>
+          <p class="text-xs text-slate-500">Jawaban Pertanyaan Inti: "Lewat siapa jalur terbaik menuju decision maker?"</p>
+        </div>
+        <button onclick="closeModal('summary-modal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800">
+          ✕
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-4 text-xs text-slate-600 pr-1">
+        <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-100 space-y-1">
+          <div class="font-bold text-blue-900 text-sm">1. Prospek P01 (Grup Ritel Mandala - Rp 252 Jt)</div>
+          <p>• <strong>Decision Maker:</strong> Rina Hapsari (GM Operations). Fajar IT Mgr bukan decision maker (I0343).</p>
+          <p>• <strong>Jalur Terbaik:</strong> Sari Puspita (AM C01) ➔ Rina Hapsari (13 interaksi) ➔ Steven Wijaya (Dirut).</p>
+          <p>• <strong>Preseden:</strong> D-2025-11 (diskon 15% untuk 42 outlet C01) menjadi dasar tawaran volume 60 outlet.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-purple-50/70 border border-purple-100 space-y-1">
+          <div class="font-bold text-purple-900 text-sm">2. Prospek P04 (Nirwana Hotel &amp; Resto - Rp 147 Jt)</div>
+          <p>• <strong>Decision Maker:</strong> Hartono Gunawan (Direktur Utama). Negosiasi macet karena minta referensi rekanan (I0335).</p>
+          <p>• <strong>Jalur Terbaik:</strong> Wahyu Nugroho (AM C06) ➔ Budi Santoso (CFO C06) ➔ Hartono Gunawan.</p>
+          <p>• <strong>Koneksi Kunci:</strong> Budi dan Hartono bekerja bersama 5 tahun (2015–2019) di PT Sentosa Abadi Group.</p>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 space-y-1">
+          <div class="font-bold text-emerald-900 text-sm">3. Temuan Lintas Track Mandiri (Bonus +5)</div>
+          <p>• <strong>CS Churn ↔ Sales Opportunity:</strong> Kepergian Rina melemahkan retensi C01, namun kepindahannya ke P01 membuka peluang pengadaan sistem kasir 60 gerai.</p>
+          <p>• <strong>CS Advocacy ↔ Sales Closing:</strong> Keberhasilan pendampingan AM C06 (NPS 9) dikonversi menjadi peer reference penutup kesepakatan P04.</p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-100 flex justify-end">
+        <button onclick="closeModal('summary-modal')" class="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Data File (Modular & Root Fallback) -->
+  <script src="js/graph-data.js"></script>
+  <script>
+    if (!window.GRAPH_DATA) {
+      document.write('<script src="graph-data.js"><\/script>');
+    }
+  </script>
+
+  <!-- PURE JS APPLICATION ENGINE -->
+  <script>
+    // ===== 1. INTERACTIVE PATH FINDER (BFS) =====
+    const sourcesList = [
+      { id: 'E03', label: 'Sari Puspita (AM C01 & C03)' },
+      { id: 'E04', label: 'Wahyu Nugroho (AM C06 Saiyo)' },
+      { id: 'E06', label: 'Bagus Prakoso (Sales Exec P01 & P04)' },
+      { id: 'E07', label: 'Citra Ayuningtyas (Sales Exec P02)' },
+      { id: 'E08', label: 'Doni Saputra (Sales Exec P03)' },
+      { id: 'E01', label: 'Andi Wiratama (VP Sales)' },
+      { id: 'K116', label: 'Budi Santoso (CFO C06 Saiyo)' },
+      { id: 'K056', label: 'Michael Tanoto (Dirut C01 Kopi Lintas)' }
+    ];
+
+    const targetsList = [
+      { id: 'K017', label: 'Rina Hapsari (GM Ops P01 Mandala)' },
+      { id: 'K089', label: 'Steven Wijaya (Dirut P01 Mandala)' },
+      { id: 'K028', label: 'Hartono Gunawan (Dirut P04 Nirwana)' },
+      { id: 'K065', label: 'Yuli Astuti (Purchasing P04)' },
+      { id: 'K052', label: 'Fajar Nugraha (IT Mgr P01)' },
+      { id: 'P01', label: 'Akun P01: Grup Ritel Mandala' },
+      { id: 'P04', label: 'Akun P04: Nirwana Hotel & Resto' }
+    ];
+
+    function initSelects() {
+      const srcEl = document.getElementById('finder-source');
+      const tgtEl = document.getElementById('finder-target');
+      if (!srcEl || !tgtEl) return;
+
+      srcEl.innerHTML = sourcesList.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+      tgtEl.innerHTML = targetsList.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+
+      srcEl.value = 'E03';
+      tgtEl.value = 'K017';
+    }
+
+    function applyPreset(src, tgt) {
+      document.getElementById('finder-source').value = src;
+      document.getElementById('finder-target').value = tgt;
+      calculateAndDisplayPath();
+      document.getElementById('path-finder').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function selectPreset(src, tgt) {
+      applyPreset(src, tgt);
+    }
+
+    function bfs(start, end) {
+      if (start === end) return { path: [start], edges: [] };
+      if (!window.GRAPH_DATA) return null;
+
+      const adj = {};
+      window.GRAPH_DATA.nodes.forEach(n => { adj[n.id] = []; });
+      window.GRAPH_DATA.edges.forEach(e => {
+        if (!adj[e.from]) adj[e.from] = [];
+        if (!adj[e.to]) adj[e.to] = [];
+        adj[e.from].push({ neighbor: e.to, edge: e });
+        adj[e.to].push({ neighbor: e.from, edge: e });
+      });
+
+      const queue = [[start]];
+      const edgeQueue = [[]];
+      const visited = new Set([start]);
+
+      while (queue.length > 0) {
+        const path = queue.shift();
+        const edgePath = edgeQueue.shift();
+        const cur = path[path.length - 1];
+
+        if (cur === end) {
+          return { path, edges: edgePath };
+        }
+
+        const neighbors = adj[cur] || [];
+        for (const { neighbor, edge } of neighbors) {
+          if (!visited.has(neighbor)) {
+            visited.add(neighbor);
+            queue.push([...path, neighbor]);
+            edgeQueue.push([...edgePath, edge]);
+          }
+        }
+      }
+      return null;
+    }
+
+    function calculateScore(edges) {
+      if (!edges || edges.length === 0) return '5.0';
+      let total = 0;
+      edges.forEach(e => { total += (e.weight || 6); });
+      const avg = total / edges.length;
+      const penalty = Math.max(0, (edges.length - 1) * 0.35);
+      return Math.max(4.0, Math.min(9.8, (avg - penalty))).toFixed(1);
+    }
+
+    function calculateAndDisplayPath() {
+      const src = document.getElementById('finder-source').value;
+      const tgt = document.getElementById('finder-target').value;
+      const out = document.getElementById('finder-result');
+      const res = bfs(src, tgt);
+
+      if (!res || !res.path || res.path.length === 0) {
+        out.innerHTML = `<div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs text-center">Tidak ditemukan rute koneksi langsung antar entitas ini dalam context graph.</div>`;
+        return;
+      }
+
+      const score = calculateScore(res.edges);
+      const nodeObjs = res.path.map(id => window.GRAPH_DATA.nodes.find(n => n.id === id) || { id, label: id, type: 'node', role: '' });
+      activeHighlightPath = res.path;
+
+      // Hops flow cards
+      let flowHtml = `<div class="flex items-center gap-3 overflow-x-auto pb-2">`;
+      for (let i = 0; i < nodeObjs.length; i++) {
+        const n = nodeObjs[i];
+        flowHtml += `
+          <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 text-center min-w-[140px] shadow-sm">
+            <div class="text-[9px] font-mono uppercase text-blue-400 font-bold">${n.type}</div>
+            <div class="text-xs font-bold text-white truncate max-w-[150px] mt-0.5">${n.label}</div>
+            <div class="text-[10px] text-slate-400 truncate max-w-[150px] mt-0.5">${n.role || n.id}</div>
+          </div>
+        `;
+        if (i < res.edges.length) {
+          flowHtml += `<div class="text-slate-500 font-bold text-sm px-1">➔</div>`;
+        }
+      }
+      flowHtml += `</div>`;
+
+      let summaryHtml = '';
+      if ((src === 'E03' && tgt === 'K017') || (src === 'E03' && tgt === 'K089')) {
+        summaryHtml = `
+          <div class="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/30 text-xs text-slate-300 space-y-1.5">
+            <div class="font-bold text-blue-300">🎯 Analisis Pendekatan Strategis P01:</div>
+            <p>Sari Puspita (AM C01) mengawal akun Rina Hapsari selama 3+ tahun di Kopi Lintas (13 interaksi positif). Fajar IT Manager menegaskan keputusan 60 gerai ada di tangan GM Operations baru (I0343). Sari menghubungi Rina secara personal, mengucapkan selamat atas jabatan barunya, lalu mengajak sesi demo bersama Bagus (Sales).</p>
+          </div>
+        `;
+      } else if ((src === 'E04' && tgt === 'K028') || (src === 'K116' && tgt === 'K028')) {
+        summaryHtml = `
+          <div class="p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-xs text-slate-300 space-y-1.5">
+            <div class="font-bold text-purple-300">🎯 Analisis Pendekatan Strategis P04:</div>
+            <p>Budi Santoso (CFO C06 Saiyo) dan Hartono Gunawan (Dirut P04) pernah 5 tahun sekantor di PT Sentosa Abadi Group (2015–2019). Permintaan referensi usaha sejenis dari Hartono (I0335) langsung diselesaikan oleh rekomendasi personal Budi (resto Padang 30 outlet, NPS 9).</p>
+          </div>
+        `;
+      }
+
+      out.innerHTML = `
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <span class="text-[10px] font-mono uppercase text-slate-400 font-bold">JALUR TERVERIFIKASI (${res.path.length - 1} HOPS)</span>
+            <div class="font-bold text-sm text-white">${nodeObjs[0].label} ➔ ${nodeObjs[nodeObjs.length - 1].label}</div>
+          </div>
+          <div class="px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono font-bold text-sm">
+            Kekuatan: ${score} / 10
+          </div>
+        </div>
+        ${flowHtml}
+        ${summaryHtml}
+      `;
+
+      triggerSimulatedToast(`✓ Jalur ${nodeObjs[0].label} ➔ ${nodeObjs[nodeObjs.length - 1].label} berhasil dihitung!`);
+    }
+
+    // ===== 2. CANVAS GRAPH RENDERER =====
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let nodes = [];
+    let edges = [];
+    let activeFilter = 'all';
+    let activeHighlightPath = ['E03', 'K017', 'K089'];
+    let draggedNode = null;
+    let hoveredNode = null;
+
+    function initCanvasData() {
+      if (!window.GRAPH_DATA) return;
+
+      nodes = window.GRAPH_DATA.nodes.map(n => {
+        let color = '#3B82F6';
+        let radius = 16;
+        if (n.type === 'kasirnusa') { color = '#3B82F6'; radius = 18; }
+        else if (n.type === 'dm') { color = '#F43F5E'; radius = 22; }
+        else if (n.type === 'prospect') { color = '#F59E0B'; radius = 20; }
+        else if (n.type === 'customer') { color = '#10B981'; radius = 18; }
+        else if (n.type === 'org') { color = '#FB923C'; radius = 16; }
+        else if (n.type === 'contact') { color = '#06B6D4'; radius = 15; }
+        else if (n.type === 'decision') { color = '#A855F7'; radius = 15; }
+        else if (n.type === 'feature') { color = '#14B8A6'; radius = 14; }
+
+        return {
+          id: n.id,
+          label: n.label,
+          type: n.type,
+          role: n.role,
+          category: n.group || n.type,
+          desc: `${n.label} — ${n.role}. Terhubung dalam Context Graph KasirNusa.`,
+          color,
+          radius,
+          x: 0,
+          y: 0,
+          vx: 0,
+          vy: 0
+        };
+      });
+
+      edges = window.GRAPH_DATA.edges.map(e => ({
+        source: e.from,
+        target: e.to,
+        label: e.label,
+        weight: e.weight || 6
+      }));
+
+      positionNodes();
+    }
+
+    function positionNodes() {
+      if (!width || !height) return;
+      nodes.forEach((n, i) => {
+        const angle = (i / nodes.length) * Math.PI * 2;
+        const rad = (i % 3 === 0) ? 120 : (i % 3 === 1) ? 200 : 280;
+        n.x = width / 2 + Math.cos(angle) * rad;
+        n.y = height / 2 + Math.sin(angle) * rad;
+      });
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    function getVisibleNodes() {
+      if (activeFilter === 'p01') {
+        const s = new Set(['P01', 'K017', 'K089', 'K052', 'E03', 'E06', 'C01', 'DL-001', 'D-2025-11', 'FEAT-07']);
+        return nodes.filter(n => s.has(n.id));
+      }
+      if (activeFilter === 'p04') {
+        const s = new Set(['P04', 'K028', 'K065', 'E04', 'E06', 'K116', 'C06', 'ORG_SENTOSA', 'DL-004', 'D-2025-06']);
+        return nodes.filter(n => s.has(n.id));
+      }
+      return nodes;
+    }
+
+    function renderGraph() {
+      ctx.clearRect(0, 0, width, height);
+      const visible = getVisibleNodes();
+      const visibleSet = new Set(visible.map(n => n.id));
+
+      // Edges
+      edges.forEach(e => {
+        if (!visibleSet.has(e.source) || !visibleSet.has(e.target)) return;
+        const n1 = nodes.find(n => n.id === e.source);
+        const n2 = nodes.find(n => n.id === e.target);
+        if (!n1 || !n2) return;
+
+        const isPath = activeHighlightPath.includes(n1.id) && activeHighlightPath.includes(n2.id) &&
+          Math.abs(activeHighlightPath.indexOf(n1.id) - activeHighlightPath.indexOf(n2.id)) === 1;
+
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+        ctx.strokeStyle = isPath ? '#38BDF8' : 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = isPath ? 3.5 : 1.2;
+        ctx.stroke();
+
+        if (isPath) {
+          const t = (Date.now() / 1500) % 1;
+          const px = n1.x + (n2.x - n1.x) * t;
+          const py = n1.y + (n2.y - n1.y) * t;
+          ctx.beginPath();
+          ctx.arc(px, py, 3, 0, Math.PI * 2);
+          ctx.fillStyle = '#38BDF8';
+          ctx.fill();
+        }
+      });
+
+      // Nodes
+      visible.forEach(n => {
+        const isHovered = (n === hoveredNode || n === draggedNode);
+        const isPath = activeHighlightPath.includes(n.id);
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.radius + (isHovered ? 8 : isPath ? 6 : 2), 0, Math.PI * 2);
+        ctx.fillStyle = isPath ? '#38BDF8' : n.color;
+        ctx.globalAlpha = isHovered ? 0.45 : isPath ? 0.35 : 0.12;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#0F172A';
+        ctx.strokeStyle = isPath ? '#38BDF8' : n.color;
+        ctx.lineWidth = isPath ? 2.8 : 2;
+        ctx.globalAlpha = 1;
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = isPath ? '#38BDF8' : n.color;
+        ctx.fill();
+
+        ctx.font = `${isHovered || isPath ? 'bold 11px' : '10px'} "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = isPath ? '#38BDF8' : '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.radius + 13);
+      });
+    }
+
+    function updatePhysics() {
+      const visible = getVisibleNodes();
+      visible.forEach(n => {
+        if (n === draggedNode) return;
+        n.vx += (width / 2 - n.x) * 0.012;
+        n.vy += (height / 2 - n.y) * 0.012;
+        n.vx *= 0.86;
+        n.vy *= 0.86;
+        n.x += n.vx;
+        n.y += n.vy;
+      });
+    }
+
+    function loop() {
+      updatePhysics();
+      renderGraph();
+      requestAnimationFrame(loop);
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const visible = getVisibleNodes();
+      for (let i = visible.length - 1; i >= 0; i--) {
+        const n = visible[i];
+        if (Math.hypot(n.x - x, n.y - y) <= n.radius + 8) {
+          draggedNode = n;
+          inspectNode(n);
+          return;
+        }
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (draggedNode) {
+        draggedNode.x = x;
+        draggedNode.y = y;
+      } else {
+        const visible = getVisibleNodes();
+        hoveredNode = visible.find(n => Math.hypot(n.x - x, n.y - y) <= n.radius + 8);
+        canvas.style.cursor = hoveredNode ? 'grab' : 'default';
+      }
+    });
+
+    window.addEventListener('mouseup', () => { draggedNode = null; });
+
+    function inspectNode(n) {
+      document.getElementById('inspect-title').innerText = n.label;
+      document.getElementById('inspect-desc').innerText = n.desc;
+      document.getElementById('inspect-category').innerText = n.category.toUpperCase();
+      document.getElementById('inspect-id').innerText = n.id;
+      document.getElementById('inspect-role').innerText = `Role: ${n.role || n.type}`;
+      document.getElementById('hud-active').innerText = n.label;
+    }
+
+    function focusInFinder() {
+      const id = document.getElementById('inspect-id').innerText;
+      if (!id) return;
+      const isTarget = targetsList.some(t => t.id === id);
+      if (isTarget) {
+        document.getElementById('finder-target').value = id;
+      } else {
+        document.getElementById('finder-source').value = id;
+      }
+      calculateAndDisplayPath();
+      document.getElementById('path-finder').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function setGraphFilter(f) {
+      activeFilter = f;
+      ['all', 'p01', 'p04'].forEach(id => {
+        const btn = document.getElementById('filter-' + id);
+        if (btn) {
+          btn.className = (id === f) 
+            ? "px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-blue-700 shadow-md"
+            : "px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all";
+        }
+      });
+      document.getElementById('hud-nodes').innerText = getVisibleNodes().length;
+      triggerSimulatedToast(`Filter diubah: ${f.toUpperCase()}`);
+    }
+
+    function resetGraphPhysics() {
+      positionNodes();
+      triggerSimulatedToast("↺ Posisi canvas graph di-pusatkan kembali!");
+    }
+
+    // ===== 3. GENERAL HELPERS =====
+    function copyToClipboard(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText).then(() => {
+        triggerSimulatedToast("✓ Berhasil disalin ke clipboard!");
+      });
+    }
+
+    function triggerSimulatedToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-text').innerText = msg;
+      toast.classList.remove('-translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-20', 'opacity-0');
+      }, 3200);
+    }
+
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function toggleMobileMenu() {
+      const m = document.getElementById('mobile-menu');
+      if (m) m.classList.toggle('hidden');
+    }
+
+    window.onload = function() {
+      initSelects();
+      calculateAndDisplayPath();
+      resizeCanvas();
+      initCanvasData();
+      loop();
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        positionNodes();
+      });
+    };
+  </script>
+</body>
+</html>

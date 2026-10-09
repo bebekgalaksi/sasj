@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEALGRAPH // Context Graph for Customer Success & Sales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              800: '#1E40AF',
+              900: '#1E3A8A',
+              950: '#0F2356'
+            },
+            slate: {
+              850: '#151E2E',
+              900: '#0F172A',
+              950: '#0B0F19'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace']
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
+            'card-hover': '0 20px 30px -10px rgba(37, 99, 235, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04)',
+            'glow-blue': '0 0 50px -10px rgba(37, 99, 235, 0.45)',
+            'pill': '0 2px 8px rgba(37, 99, 235, 0.08)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FFFFFF;
+      color: #0F172A;
+      overflow-x: hidden;
+    }
+
+    .hero-glow {
+      background: radial-gradient(circle at 50% 100%, #2563EB 0%, #1D4ED8 40%, rgba(29, 78, 216, 0) 75%);
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background-color: #EFF6FF;
+      border: 1px solid #DBEAFE;
+      color: #2563EB;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-slate-900 bg-white">
+
+  <!-- Feedback Notification Toast (Positioned at top-right for high visibility in split view) -->
+  <div id="toast" class="fixed top-5 right-5 sm:right-6 z-50 transform -translate-y-16 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700">
+    <div id="toast-indicator" class="w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping"></div>
+    <span id="toast-text" class="text-xs font-medium font-sans">Copied to clipboard! Ready to paste into Figma.</span>
+  </div>
+
+  <!-- Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-2.5 cursor-pointer">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.001 15.085A1.5 1.5 0 0 1 9 16.5" />
+            <circle cx="18.5" cy="8.5" r="3.5" />
+            <circle cx="7.5" cy="16.5" r="5.5" />
+            <circle cx="7.5" cy="4.5" r="2.5" />
+          </svg>
+        </div>
+        <span class="font-bold text-xl tracking-tight text-slate-900">DEALGRAPH<span class="text-blue-600">.</span></span>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center gap-9 text-sm font-medium text-slate-600">
+        <a href="#features" class="hover:text-blue-600 transition-colors">Features</a>
+        <a href="#how-it-works" class="hover:text-blue-600 transition-colors">How It Works</a>
+        <a href="#demo" class="hover:text-blue-600 transition-colors">Story</a>
+        <a href="#integrations" class="hover:text-blue-600 transition-colors">Integrations</a>
+        <a href="#pricing" class="hover:text-blue-600 transition-colors">Pricing</a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-4 sm:gap-6">
+        <a href="#sign-in" onclick="openModal('signin-modal'); return false;" class="hidden sm:inline-block text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors">Sign in</a>
+        <button onclick="openModal('getstarted-modal')" class="cursor-pointer px-5 py-2.5 rounded-full text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/25 transition-all active:scale-95">Get started</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-12 pb-24 overflow-hidden">
+    
+    <!-- Top Hero Content -->
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      
+      <!-- Pill Badge -->
+      <div class="inline-block mb-4">
+        <div class="pill-badge bg-blue-50/50 border-blue-100 text-blue-600 uppercase tracking-widest text-[10px] px-3 py-1 font-bold">
+          FOR CS &amp; SALES TEAMS
+        </div>
+      </div>
+
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]">
+        Scale Sales &amp; Serve Customers <br>
+        24/7 with <span class="text-blue-600">Context Graph</span>
+      </h1>
+      
+      <!-- Subtitle -->
+      <p class="mt-5 text-base sm:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
+        Save hundreds of hours, eliminate account amnesia between AE deals and CSM onboarding, and enhance customer satisfaction with autonomous account intelligence.
+      </p>
+
+      <!-- Hero Action Buttons -->
+      <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button onclick="openModal('getstarted-modal')" class="cursor-pointer w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/30 transition-all active:scale-95">
+          Get Started
+        </button>
+        <button onclick="openModal('bookdemo-modal')" class="cursor-pointer w-full sm:w-auto px-8 py-3.5 rounded-full text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
+          Book a Demo
+        </button>
+      </div>
+    </div>
+
+    <!-- Curved Blue Ambient Backdrop & Floating Dashboard Container -->
+    <div class="relative mt-16 max-w-6xl mx-auto px-4 sm:px-6">
+      
+      <!-- Vivid Blue Curved Mesh / Backdrop (Exact match to screenshot) -->
+      <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[95%] h-[340px] sm:h-[460px] bg-gradient-to-t from-blue-600 via-blue-600/70 to-transparent rounded-[50px] sm:rounded-[70px] blur-xl opacity-90 -z-10 pointer-events-none"></div>
+
+      <!-- Dashboard Mockup Card -->
+      <div class="bg-white rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden">
+        
+        <!-- Mockup Header Bar -->
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+          <div class="flex items-center gap-3">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+              <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+              <div class="w-3 h-3 rounded-full bg-slate-300"></div>
+            </div>
+            <span class="text-xs font-semibold text-slate-700 ml-2">Dashboard</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-600">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span>Feb 1 – Mar 1, 2026</span>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 text-xs font-bold">
+              SJ
+            </div>
+          </div>
+        </div>
+
+        <div class="p-6 sm:p-8 bg-slate-50/30">
+          
+          <!-- Welcome Message -->
+          <div class="mb-6">
+            <h3 class="text-xl font-bold text-slate-900">Hi, Sarah!</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Welcome back! Here's what's happening across your CS &amp; Sales context graph today.</p>
+          </div>
+
+          <!-- 4 Top Stat Cards (Matching screenshot) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            
+            <!-- Card 1 -->
+            <div class="bg-blue-600 p-4 rounded-2xl text-white shadow-md shadow-blue-500/20">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white">↗ +12.5%</span>
+              </div>
+              <div class="text-2xl font-bold tracking-tight">24,589</div>
+              <div class="text-xs text-blue-100 mt-0.5">Context Edges Synced</div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">↗ +8.2%</span>
+              </div>
+              <div class="text-2xl font-bold tracking-tight text-slate-900">1m 34s</div>
+              <div class="text-xs text-slate-500 mt-0.5">AE to CSM Handover Time</div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">↗ +3.7%</span>
+              </div>
+              <div class="text-2xl font-bold tracking-tight text-slate-900">94%</div>
+              <div class="text-xs text-slate-500 mt-0.5">Account Health Score</div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">↗ +10.1%</span>
+              </div>
+              <div class="text-2xl font-bold tracking-tight text-slate-900">1,452</div>
+              <div class="text-xs text-slate-500 mt-0.5">Tracked Enterprise Accounts</div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Split View: Forecast Chart + AI Agents / Graph Nodes -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Chart Card -->
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h4 class="font-bold text-sm text-slate-900">Context-Driven Net Revenue Retention</h4>
+                  <p class="text-[11px] text-slate-400">Expansion forecast based on proactive stakeholder alignment</p>
+                </div>
+                <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px] font-medium text-slate-600">
+                  <span class="px-2 py-1 rounded-md bg-blue-600 text-white font-semibold">Monthly</span>
+                  <span class="px-2 py-1 rounded-md hover:bg-slate-200 cursor-pointer">Quarterly</span>
+                  <span class="px-2 py-1 rounded-md hover:bg-slate-200 cursor-pointer">Yearly</span>
+                </div>
+              </div>
+
+              <!-- Bar Visualization Mockup -->
+              <div class="h-44 w-full flex items-end justify-between gap-3 pt-6 px-2">
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full bg-blue-100 rounded-t-md h-[40%]"></div>
+                  <span class="text-[10px] text-slate-400">Feb</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full bg-blue-200 rounded-t-md h-[55%]"></div>
+                  <span class="text-[10px] text-slate-400">Mar</span>
+                </div>
+                <!-- Highlighted Active Month with Tooltip -->
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end relative">
+                  <div class="absolute -top-7 px-2 py-0.5 bg-slate-900 text-white rounded text-[9px] font-medium shadow-md whitespace-nowrap">
+                    April: $60,000 (+14%)
+                  </div>
+                  <div class="w-full bg-blue-600 rounded-t-md h-[85%] shadow-md shadow-blue-500/30"></div>
+                  <span class="text-[10px] font-bold text-blue-600">Apr</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full bg-blue-300 rounded-t-md h-[50%]"></div>
+                  <span class="text-[10px] text-slate-400">May</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full bg-blue-400 rounded-t-md h-[68%]"></div>
+                  <span class="text-[10px] text-slate-400">Jun</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full bg-blue-500 rounded-t-md h-[78%]"></div>
+                  <span class="text-[10px] text-slate-400">Jul</span>
+                </div>
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full bg-blue-600 rounded-t-md h-[95%]"></div>
+                  <span class="text-[10px] text-slate-400">Aug</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Graph Node Agents Card -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="font-bold text-sm text-slate-900">Active Graph Agents</h4>
+                  <a href="#demo" class="text-[11px] text-blue-600 font-semibold hover:underline">View Graph ↗</a>
+                </div>
+
+                <div class="space-y-2.5">
+                  <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold">
+                        SA
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-slate-800">Sales-CS Bridge Agent</div>
+                        <div class="text-[10px] text-slate-400">65 Handover notes • 4.9/5</div>
+                      </div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">● Active</span>
+                  </div>
+
+                  <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                        LQ
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-slate-800">Early Churn Radar</div>
+                        <div class="text-[10px] text-slate-400">59 Slack alerts • 4.9/5</div>
+                      </div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">● Active</span>
+                  </div>
+
+                  <div class="p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <div class="w-7 h-7 rounded-lg bg-cyan-100 text-cyan-600 flex items-center justify-center text-xs font-bold">
+                        SP
+                      </div>
+                      <div>
+                        <div class="text-xs font-bold text-slate-800">Expansion Opportunity</div>
+                        <div class="text-[10px] text-slate-400">77 Signals • 4.8/5</div>
+                      </div>
+                    </div>
+                    <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">● Active</span>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="triggerSimulatedToast('Auto-tuning neural context graph weights...')" class="mt-4 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/20">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Optimize Graph Performance</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Logo Strip (Matching screenshot) -->
+    <div class="mt-16 text-center max-w-5xl mx-auto px-4">
+      <p class="text-xs font-medium text-slate-400 tracking-wide uppercase">Already trusted by fast-growing revenue teams</p>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-50 grayscale hover:grayscale-0 transition-all">
+        <span class="font-extrabold text-lg text-slate-700 font-mono tracking-tighter">▲ VORTEX</span>
+        <span class="font-bold text-lg text-slate-700 font-mono">logoiPsum</span>
+        <span class="font-bold text-lg text-slate-700 font-sans tracking-wide">STRIPEFLOW</span>
+        <span class="font-extrabold text-lg text-slate-700 font-mono">NEXUS.IO</span>
+        <span class="font-bold text-lg text-slate-700 font-sans">HYPERBASE</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Inefficiency Alert Section -->
+  <section class="py-20 bg-slate-50 border-y border-slate-100">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      
+      <!-- Pill Badge -->
+      <div class="pill-badge mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+        <span>Inefficiency Alert</span>
+      </div>
+
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+        Manual Handover Is Quietly <br>
+        Killing Your Net Revenue Retention
+      </h2>
+
+      <p class="mt-3 text-sm sm:text-base text-slate-500 max-w-xl mx-auto">
+        You're not just wasting time — you're losing customer promises, missing early churn signs, and leaking renewal expansion every day.
+      </p>
+
+      <!-- Pain Point Capsule Cloud (Exact matching layout from screenshot) -->
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+        
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Sales promises slipping through CRM closed tickets</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Account context scattered across Slack, Gong &amp; Zoom</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>CSMs still writing manual account briefs by hand</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Answering identical architecture questions on every QBR</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Champion job changes discovered only 30 days before renewal</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Juggling 6 browser tabs to understand 1 customer</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Generic AI summaries that miss critical contract clauses</span>
+        </div>
+
+        <div class="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm text-xs font-medium text-slate-700">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">✕</span>
+          <span>Lost expansion revenue from slow ticket escalations</span>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 3-Column Clean Feature Cards -->
+  <section id="features" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <div class="pill-badge mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+        <span>Powerful Graph Engine</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+        Turn Every Manual Task <br>
+        Into an Automated Win
+      </h2>
+      <p class="mt-3 text-sm sm:text-base text-slate-500">
+        From sales closing to customer success onboarding, automation makes every account journey faster, smarter, and continuous.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Card 1: Unified Context Inbox -->
+      <div class="bg-slate-50/70 p-7 rounded-3xl border border-slate-200/90 flex flex-col justify-between hover:shadow-card-hover transition-all">
+        <div class="h-48 w-full bg-white rounded-2xl border border-slate-200/70 flex items-center justify-center relative overflow-hidden p-6 mb-6">
+          <div class="w-24 h-20 bg-blue-500/10 rounded-2xl border-2 border-blue-500 flex items-center justify-center relative">
+            <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            <div class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">
+              ✓
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Unified Context Inbox</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Consolidate buyer promises, Jira tickets, Gong call sentiment, and Zendesk escalations into one live neural thread.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 2: Smart Conversation Routing -->
+      <div class="bg-slate-50/70 p-7 rounded-3xl border border-slate-200/90 flex flex-col justify-between hover:shadow-card-hover transition-all">
+        <div class="h-48 w-full bg-white rounded-2xl border border-slate-200/70 p-4 mb-6 flex flex-col justify-center space-y-2.5">
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-purple-200 text-purple-700 font-bold flex items-center justify-center text-[10px]">M</div>
+              <span class="font-medium text-slate-700">Maya (AE Lead)</span>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-blue-50 text-blue-600 font-semibold">Deal Closes</span>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-xl bg-blue-50 border border-blue-200 text-xs shadow-sm">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-[10px]">J</div>
+              <span class="font-semibold text-blue-900">Jeremy (CSM Onboarding)</span>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-blue-600 text-white font-semibold">Auto-Synced</span>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full bg-emerald-200 text-emerald-700 font-bold flex items-center justify-center text-[10px]">A</div>
+              <span class="font-medium text-slate-700">Adam (Solutions Eng)</span>
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 font-semibold">SLA Validated</span>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Smart Relationship Routing</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Detect the exact intent behind every customer message and route it instantly to the right AE, CSM, or engineer.
+          </p>
+        </div>
+      </div>
+
+      <!-- Card 3: Performance Analytics -->
+      <div class="bg-slate-50/70 p-7 rounded-3xl border border-slate-200/90 flex flex-col justify-between hover:shadow-card-hover transition-all">
+        <div class="h-48 w-full bg-white rounded-2xl border border-slate-200/70 p-5 mb-6 flex flex-col justify-center space-y-3.5">
+          <div>
+            <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+              <span>Handover Speed</span>
+              <span class="text-emerald-600">10s</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-emerald-500 h-2 rounded-full w-[94%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+              <span>Churn Risk Mitigation</span>
+              <span class="text-purple-600">79%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-purple-500 h-2 rounded-full w-[79%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+              <span>Graph Coverage</span>
+              <span class="text-blue-600">85%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-blue-600 h-2 rounded-full w-[85%]"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Performance Analytics</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            Monitor handoff velocity, early churn signals, and automated pipeline coverage in one continuous dashboard.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Split Rows: Builder & Flow (Exact match to Screenshot 3) -->
+  <section id="how-it-works" class="py-20 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+      
+      <!-- Row 1: Agent & Node Builder -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="pill-badge mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+            <span>AI Agent &amp; Node Builder</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Build custom AI context agents in minutes
+          </h2>
+
+          <div class="mt-8 grid grid-cols-2 gap-6">
+            <div>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900">No-Code Setup</h4>
+              <p class="text-xs text-slate-500 mt-1">Connect CRM, Slack &amp; Gong in under 5 minutes without engineering.</p>
+            </div>
+
+            <div>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900">Custom Knowledge</h4>
+              <p class="text-xs text-slate-500 mt-1">Upload account SLAs, master services agreements, and onboarding playbooks.</p>
+            </div>
+
+            <div>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900">API Integration</h4>
+              <p class="text-xs text-slate-500 mt-1">Sync directly into Salesforce, HubSpot, Linear, Zendesk, and Notion.</p>
+            </div>
+
+            <div>
+              <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <h4 class="text-sm font-bold text-slate-900">Instant Deployment</h4>
+              <p class="text-xs text-slate-500 mt-1">Launch proactive graph alerts across Slack channels with 1 click.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Visual Mockup (Matching Screenshot 3 top) -->
+        <div class="relative bg-gradient-to-tr from-blue-600 to-blue-400 p-8 rounded-3xl shadow-xl">
+          <div class="bg-white rounded-2xl p-6 shadow-lg">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+              <span class="font-bold text-sm text-slate-900">Account Graph Agents</span>
+              <button class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 border border-blue-200">
+                + Upload knowledge
+              </button>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-xs">M</div>
+                  <div>
+                    <div class="text-xs font-bold text-slate-800">Marie (AE Lead)</div>
+                    <div class="text-[10px] text-slate-400">Sales Promises &amp; Pricing</div>
+                  </div>
+                </div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600">Sales</span>
+              </div>
+
+              <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs">K</div>
+                  <div>
+                    <div class="text-xs font-bold text-slate-800">Kevin (CS Director)</div>
+                    <div class="text-[10px] text-slate-400">Onboarding Health &amp; Escalations</div>
+                  </div>
+                </div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">Support</span>
+              </div>
+
+              <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-8 h-8 rounded-full bg-cyan-100 text-cyan-700 font-bold flex items-center justify-center text-xs">N</div>
+                  <div>
+                    <div class="text-xs font-bold text-slate-800">Naomi (RevOps)</div>
+                    <div class="text-[10px] text-slate-400">Renewal Vector Radar</div>
+                  </div>
+                </div>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">Lead Qualifier</span>
+              </div>
+            </div>
+
+            <button class="mt-5 w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors">
+              + Create Account Agent
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Flow Builder (Matching Screenshot 3 bottom) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <!-- Left Visual Flow Nodes -->
+        <div class="order-2 lg:order-1 relative bg-gradient-to-br from-blue-500 to-indigo-600 p-8 rounded-3xl shadow-xl">
+          <div class="space-y-4 max-w-sm mx-auto">
+            
+            <!-- Flow Node 1 -->
+            <div class="bg-white rounded-2xl p-4 shadow-md border-l-4 border-blue-600">
+              <div class="flex items-center gap-2 text-xs font-bold text-blue-600 mb-1">
+                <span>▶ Start Point</span>
+              </div>
+              <div class="text-xs font-semibold text-slate-900">Contract Signed: Enterprise Tier</div>
+              <div class="text-[10px] text-slate-400">Event triggers immediate graph ingestion</div>
+            </div>
+
+            <div class="w-0.5 h-4 bg-white/60 mx-auto"></div>
+
+            <!-- Flow Node 2 -->
+            <div class="bg-white rounded-2xl p-4 shadow-md border-l-4 border-purple-600">
+              <div class="flex items-center gap-2 text-xs font-bold text-purple-600 mb-1">
+                <span>⚡ Condition Check</span>
+              </div>
+              <div class="text-xs font-semibold text-slate-900">If SAML SSO or Custom SLA Promoted</div>
+              <div class="text-[10px] text-slate-400">Route prompt to Solutions Architect Pod</div>
+            </div>
+
+            <div class="w-0.5 h-4 bg-white/60 mx-auto"></div>
+
+            <!-- Flow Node 3 -->
+            <div class="bg-white rounded-2xl p-4 shadow-md border-l-4 border-emerald-600">
+              <div class="flex items-center gap-2 text-xs font-bold text-emerald-600 mb-1">
+                <span>⚐ Automated Handover</span>
+              </div>
+              <div class="text-xs font-semibold text-slate-900">CSM Provisioned with Complete Context</div>
+              <div class="text-[10px] text-slate-400">Zero manual note copy-pasting required</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="order-1 lg:order-2">
+          <div class="pill-badge mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+            <span>Automation Flow</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Multi-Agent Flow Builder
+          </h2>
+          <p class="mt-3 text-sm text-slate-500 leading-relaxed">
+            Design and manage complex handover systems effortlessly. Route customers to the right AE, CSM, or engineer based on live telemetry and contract commitments.
+          </p>
+
+          <ul class="mt-6 space-y-3.5 text-xs font-medium text-slate-700">
+            <li class="flex items-start gap-2.5">
+              <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">✓</div>
+              <span>Detect and assign sales promises, support tickets, or billing chats automatically.</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">✓</div>
+              <span>Build visual handover and renewal pipelines with drag &amp; drop rules.</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <div class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold">✓</div>
+              <span>Let AI context agents monitor accounts 24/7 and detect churn after hours.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Ticketing & Pipeline Section -->
+  <section class="py-20 bg-slate-50 border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <div>
+          <div class="pill-badge mb-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+            <span>Advanced Feature</span>
+          </div>
+          <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Ticketing System &amp; <br>Sales Pipeline
+          </h2>
+          <p class="mt-3 text-sm text-slate-500 leading-relaxed">
+            Manage every customer interaction through a clear, visual pipeline — from lead generation and closed-won commitments to post-sales customer retention.
+          </p>
+
+          <div class="mt-6 flex flex-wrap gap-2">
+            <span class="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm">
+              ▦ Multiple Boards
+            </span>
+            <span class="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm">
+              ⚡ Automation Rules
+            </span>
+            <span class="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-sm">
+              ◉ Graph Analytics &amp; Insights
+            </span>
+          </div>
+        </div>
+
+        <!-- Pipeline Kanban Cards Mockup (Matching Screenshot 4) -->
+        <div class="relative bg-gradient-to-tr from-blue-600 to-blue-400 p-8 rounded-3xl shadow-xl">
+          <div class="space-y-3">
+            
+            <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-900">New Closed Deals</div>
+                <div class="text-[11px] text-slate-400">4 Opportunities • $170,000</div>
+              </div>
+              <span class="text-slate-300 font-bold text-sm">+ :</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-900">CSM Technical Handover</div>
+                <div class="text-[11px] text-slate-400">3 Opportunities • $140,000</div>
+              </div>
+              <span class="text-slate-300 font-bold text-sm">+ :</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-900">Active Onboarding &amp; SLA Check</div>
+                <div class="text-[11px] text-slate-400">3 Opportunities • $120,000</div>
+              </div>
+              <span class="text-slate-300 font-bold text-sm">+ :</span>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl shadow-sm flex items-center justify-between">
+              <div>
+                <div class="text-xs font-bold text-slate-900">Renewal &amp; Quota Expansion</div>
+                <div class="text-[11px] text-slate-400">2 Opportunities • $200,000</div>
+              </div>
+              <span class="text-slate-300 font-bold text-sm">+ :</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Blue Interactive Demo Section (Exact match to Screenshot 4 bottom) -->
+  <section id="demo" class="py-24 bg-gradient-to-b from-blue-700 via-blue-800 to-slate-900 text-white relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-300 animate-ping"></span>
+          <span>Live Demo</span>
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
+          See Context Graph in Action
+        </h2>
+        <p class="mt-3 text-sm sm:text-base text-blue-100 max-w-xl mx-auto">
+          Watch how autonomous neural physics connect sales commitments, product telemetry, and CS health scores in real time.
+        </p>
+
+        <!-- Filter Controls -->
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <button onclick="setGraphFilter('all')" id="filter-all" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-blue-700 shadow-md">
+            Unified Graph
+          </button>
+          <button onclick="setGraphFilter('sales')" id="filter-sales" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all">
+            AE Sales Pipeline
+          </button>
+          <button onclick="setGraphFilter('cs')" id="filter-cs" class="px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all">
+            CS Health &amp; Churn
+          </button>
+          <button onclick="resetGraphPhysics()" class="px-3.5 py-1.5 rounded-full text-xs font-semibold border border-white/30 text-white hover:bg-white/10">
+            ↺ Re-center
+          </button>
+        </div>
+      </div>
+
+      <!-- Graph Stage Box -->
+      <div class="relative w-full h-[540px] rounded-3xl bg-slate-900/90 border border-white/15 overflow-hidden shadow-2xl backdrop-blur-md">
+        
+        <!-- Live HUD Status -->
+        <div class="absolute top-4 left-4 z-10 pointer-events-none flex flex-col gap-2">
+          <div class="px-3 py-1.5 rounded-lg bg-black/50 border border-white/10 text-xs font-mono text-blue-200">
+            ACTIVE NODES: <span class="text-white font-bold">12</span> • CHURN PROBABILITY: <span class="text-emerald-400 font-bold">Low (4.2%)</span>
+          </div>
+          <div class="px-3 py-1.5 rounded-lg bg-black/50 border border-white/10 text-xs font-mono text-slate-300">
+            CURRENT INSPECT: <span id="hud-active-account" class="text-blue-400 font-bold">Stripe Enterprise Core</span>
+          </div>
+        </div>
+
+        <canvas id="graphCanvas" class="w-full h-full cursor-grab active:cursor-grabbing block"></canvas>
+
+        <!-- Node Details Floating Drawer -->
+        <div id="node-inspector" class="absolute bottom-4 left-4 right-4 sm:right-auto sm:w-96 p-5 rounded-2xl bg-slate-900/95 border border-white/20 shadow-2xl backdrop-blur-xl">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+            <span id="inspect-category" class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-400/30">
+              CORE ACCOUNT
+            </span>
+            <span class="text-[10px] font-mono text-slate-400">Score: <b id="inspect-score" class="text-emerald-400">96.4%</b></span>
+          </div>
+          <h4 id="inspect-title" class="font-bold text-sm text-white">Stripe Enterprise Core</h4>
+          <p id="inspect-desc" class="text-xs text-slate-300 mt-1 leading-relaxed">
+            AE signed $240k expansion with commitment for SAML SSO &amp; multi-region data sovereignty. Open ticket #492 SLA breach causing renewal hesitation.
+          </p>
+          <div class="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-xs">
+            <span class="text-slate-400">Handover status: <b class="text-emerald-400 font-normal">Validated</b></span>
+            <button onclick="triggerSimulatedToast('⚡ Context edge injected into account node!')" class="text-blue-400 hover:text-blue-300 font-semibold text-xs">
+              Inject Signal ⚡
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Integrations & 4 Vibrant Stat Cards (Matching Screenshot 5) -->
+  <section id="integrations" class="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <div class="pill-badge mb-3">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+        <span>Integrations</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+        Unify Every Customer Conversation
+      </h2>
+      <p class="mt-3 text-sm sm:text-base text-slate-500">
+        Connect DEALGRAPH with the platforms where your leads and customers already talk.
+      </p>
+
+      <!-- App Icon Grid (12 circular app icons matching screenshot) -->
+      <div class="mt-10 grid grid-cols-6 sm:grid-cols-6 gap-4 max-w-md mx-auto">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 font-bold shadow-sm">Z</div>
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 font-bold shadow-sm">H</div>
+        <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">S</div>
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 font-bold shadow-sm">G</div>
+        <div class="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600 font-bold shadow-sm">N</div>
+        <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold shadow-sm">I</div>
+        
+        <div class="w-12 h-12 rounded-2xl bg-pink-50 border border-pink-100 flex items-center justify-center text-pink-600 font-bold shadow-sm">M</div>
+        <div class="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 font-bold shadow-sm">L</div>
+        <div class="w-12 h-12 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600 font-bold shadow-sm">J</div>
+        <div class="w-12 h-12 rounded-2xl bg-blue-100 border border-blue-200 flex items-center justify-center text-blue-700 font-bold shadow-sm">SF</div>
+        <div class="w-12 h-12 rounded-2xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 font-bold shadow-sm">ST</div>
+        <div class="w-12 h-12 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 font-bold shadow-sm">★</div>
+      </div>
+    </div>
+
+    <!-- 4 Gradient Stat Cards (Exact match to screenshot 5) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      
+      <!-- Stat 1: Cyan -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-cyan-400 to-blue-500 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight">7M+</div>
+        <div class="text-sm font-semibold mt-1">Conversations Automated</div>
+        <p class="text-xs text-cyan-50 mt-2 leading-relaxed opacity-90">
+          Delivering context-aware responses for sales, support, and leads.
+        </p>
+      </div>
+
+      <!-- Stat 2: Purple -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight">497K+</div>
+        <div class="text-sm font-semibold mt-1">Issues Resolved</div>
+        <p class="text-xs text-indigo-50 mt-2 leading-relaxed opacity-90">
+          Helping teams handle complex enterprise requests faster with AI.
+        </p>
+      </div>
+
+      <!-- Stat 3: Pink / Magenta -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight">247K+</div>
+        <div class="text-sm font-semibold mt-1">Leads Qualified</div>
+        <p class="text-xs text-pink-50 mt-2 leading-relaxed opacity-90">
+          Turning every customer interaction into a verified expansion opportunity.
+        </p>
+      </div>
+
+      <!-- Stat 4: Royal Blue -->
+      <div class="p-6 rounded-3xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg">
+        <div class="text-3xl font-extrabold tracking-tight">82%</div>
+        <div class="text-sm font-semibold mt-1">Less Manual Workload</div>
+        <p class="text-xs text-blue-50 mt-2 leading-relaxed opacity-90">
+          Reducing repetitive documentation tasks so teams focus on high-impact renewals.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="py-24 border-t border-slate-100 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="pill-badge mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <span>Clear Pricing</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Predictable plans for growing teams
+        </h2>
+        <p class="mt-3 text-sm sm:text-base text-slate-500">
+          Choose the pricing that fits your team's capability. Upgrade as you scale.
+        </p>
+
+        <!-- Billing Toggle -->
+        <div class="mt-8 flex items-center justify-center gap-3">
+          <span id="label-monthly" class="text-sm font-semibold text-slate-500 transition-colors">Monthly</span>
+          <button onclick="toggleBilling()" class="cursor-pointer relative w-12 h-6 rounded-full bg-blue-600 transition-colors duration-300 focus:outline-none" id="billing-toggle">
+            <div id="toggle-dot" class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 translate-x-5 shadow-sm"></div>
+          </button>
+          <span id="label-yearly" class="text-sm font-semibold text-slate-900 transition-colors">Annually</span>
+          <span class="ml-2 px-2 py-1 rounded bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wide">-20% Off</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <!-- Starter Plan -->
+        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col relative">
+          <h3 class="text-lg font-bold text-slate-900">Starter</h3>
+          <p class="text-xs text-slate-500 mt-2">Essential context tracking for small revenue teams.</p>
+          <div class="my-6">
+            <span class="text-4xl font-extrabold text-slate-900" id="price-starter">$47</span>
+            <span class="text-sm text-slate-500 font-medium">/user/mo</span>
+          </div>
+          <ul class="space-y-3.5 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>10 active agents</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>120 days context retention</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>Standard API support</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>5 custom context vectors</span>
+            </li>
+          </ul>
+          <button onclick="openModal('getstarted-modal')" class="cursor-pointer w-full py-3 rounded-xl border-2 border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 hover:bg-slate-50 transition-all">Start Starter Trial</button>
+        </div>
+
+        <!-- Growth Plan (Highlighted) -->
+        <div class="bg-white rounded-3xl p-8 border-2 border-blue-600 shadow-xl flex flex-col relative transform md:-translate-y-4">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider">Most Popular</div>
+          <h3 class="text-lg font-bold text-slate-900">Growth</h3>
+          <p class="text-xs text-slate-500 mt-2">Advanced context graphing for scaling sales ops.</p>
+          <div class="my-6">
+            <span class="text-4xl font-extrabold text-slate-900" id="price-growth">$79</span>
+            <span class="text-sm text-slate-500 font-medium">/user/mo</span>
+          </div>
+          <ul class="space-y-3.5 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span class="font-semibold text-slate-900">Unlimited agents</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span class="font-semibold text-slate-900">1 year context retention</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>Priority Slack support</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>15 custom context vectors</span>
+            </li>
+          </ul>
+          <button onclick="openModal('getstarted-modal')" class="cursor-pointer w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 transition-all shadow-md shadow-blue-500/25">Get Started</button>
+        </div>
+
+        <!-- Scale Plan -->
+        <div class="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col relative">
+          <h3 class="text-lg font-bold text-slate-900">Scale</h3>
+          <p class="text-xs text-slate-500 mt-2">Enterprise-grade retention for global CS orgs.</p>
+          <div class="my-6">
+            <span class="text-4xl font-extrabold text-slate-900" id="price-scale">$199</span>
+            <span class="text-sm text-slate-500 font-medium">/user/mo</span>
+          </div>
+          <ul class="space-y-3.5 mb-8 flex-1">
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>Unlimited context retention</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>Dedicated account manager</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>Custom integration service</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm text-slate-700">
+              <span class="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs flex-shrink-0">✓</span>
+              <span>Custom deployment</span>
+            </li>
+          </ul>
+          <button onclick="openModal('bookdemo-modal')" class="cursor-pointer w-full py-3 rounded-xl border-2 border-slate-200 text-slate-700 font-bold text-sm hover:border-slate-300 hover:bg-slate-50 transition-all">Contact Sales</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section (Screenshot 5) -->
+  <section class="py-16 bg-slate-50 border-y border-slate-100">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="text-center mb-10">
+        <div class="pill-badge mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <span>Testimonials</span>
+        </div>
+        <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">
+          Results That Speak for Themselves
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          Real stories from revenue teams that eliminated account amnesia and scaled retention.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-blue-100 flex-shrink-0 overflow-hidden border border-blue-200">
+          <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=80" alt="Customer" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/150x150/2563EB/FFFFFF?text=Sarah'"/>
+        </div>
+        <div>
+          <p class="text-sm sm:text-base text-slate-700 italic font-medium leading-relaxed">
+            "Our support and CSM team handles hundreds of enterprise accounts daily. With DEALGRAPH's context graph and smart routing, every closed-won promise and SLA is already organized — no more missed Slack DMs or lost renewals."
+          </p>
+          <div class="mt-3 font-bold text-xs text-slate-900">
+            Elena Vance <span class="font-normal text-slate-500">• VP of Customer Success at CloudFlow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Figma Vector Export Hub Modal -->
+  <div id="figma-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="w-full max-w-2xl max-h-[90vh] bg-white rounded-3xl p-6 sm:p-8 flex flex-col shadow-2xl border border-slate-200">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm">
+            <svg class="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 2a4 4 0 00-4 4 4 4 0 004 4h4V2H8zm8 0h-4v8h4a4 4 0 000-8zm-8 8a4 4 0 00-4 4 4 4 0 004 4h4v-8H8zm8 0h-4v8h4a4 4 0 000-8zm-8 8a4 4 0 00-4 4 4 4 0 004 4 4 4 0 004-4v-4H8z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Figma Wireframe Vector Export</h3>
+            <p class="text-xs text-slate-500">3 guaranteed ways to paste or import into Figma</p>
+          </div>
+        </div>
+        <button onclick="closeModal('figma-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <div class="space-y-4 overflow-y-auto pr-1">
+        
+        <!-- Method 1: Instant 1-Click Copy -->
+        <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full bg-blue-600 text-white font-bold text-[10px]">Method 1</span>
+              <h4 class="text-sm font-bold text-slate-900">Direct Clipboard Vector</h4>
+            </div>
+            <p class="text-xs text-slate-600 mt-1">Copies raw vector SVG code. Simply press <kbd class="px-1.5 py-0.5 rounded bg-white border border-slate-300 font-mono text-[10px]">Cmd+V</kbd> or <kbd class="px-1.5 py-0.5 rounded bg-white border border-slate-300 font-mono text-[10px]">Ctrl+V</kbd> inside Figma.</p>
+          </div>
+          <button onclick="copyFigmaSvgDirect(event)" class="cursor-pointer px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold whitespace-nowrap shadow-sm shadow-blue-500/25 active:scale-95">
+            Copy to Clipboard
+          </button>
+        </div>
+
+        <!-- Method 2: Drag & Drop .SVG File -->
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full bg-slate-700 text-white font-bold text-[10px]">Method 2</span>
+              <h4 class="text-sm font-bold text-slate-900">Download .SVG File (100% Reliable)</h4>
+            </div>
+            <p class="text-xs text-slate-600 mt-1">If your browser blocks iframe clipboard permissions, download the file and drag it onto your Figma canvas.</p>
+          </div>
+          <button onclick="downloadFigmaSvg()" class="cursor-pointer px-4 py-2 rounded-full bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 text-xs font-semibold whitespace-nowrap shadow-sm active:scale-95">
+            Download .SVG
+          </button>
+        </div>
+
+        <!-- Method 3: Raw SVG Code Textarea -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-slate-700">Raw SVG Code (Inspect or Select All):</span>
+            <button onclick="selectAndCopyRawSvg()" class="text-[11px] text-blue-600 font-semibold hover:underline cursor-pointer">
+              Select &amp; Copy Code
+            </button>
+          </div>
+          <textarea id="raw-figma-svg" readonly class="w-full h-28 p-3 rounded-xl border border-slate-200 bg-slate-50 font-mono text-[10px] text-slate-700 leading-normal resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"></textarea>
+        </div>
+
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+        <span>Vector 1440×1300 • Figma Ready Components</span>
+        <button onclick="closeModal('figma-modal')" class="px-4 py-1.5 rounded-full bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 cursor-pointer">
+          Done
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Google Stitch Spec Modal -->
+  <div id="stitch-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="w-full max-w-3xl max-h-[85vh] bg-white rounded-3xl p-6 sm:p-8 flex flex-col shadow-2xl border border-slate-200">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+            GS
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Google Stitch AI Prompt Specification</h3>
+            <p class="text-xs text-slate-500">Tailored to the Agently layout style for stitch.withgoogle.com</p>
+          </div>
+        </div>
+        <button onclick="closeModal('stitch-modal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800">
+          ✕
+        </button>
+      </div>
+
+      <div class="mb-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-700 flex items-center justify-between">
+        <span>Copy this prompt into <b>stitch.withgoogle.com</b> to generate interactive variants!</span>
+        <a href="https://stitch.withgoogle.com" target="_blank" class="underline font-bold ml-2">Open Stitch ↗</a>
+      </div>
+
+      <div class="flex-1 overflow-y-auto font-mono text-xs text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4 select-all whitespace-pre-wrap leading-relaxed" id="stitch-prompt-container">
+<!-- Loaded dynamically -->
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-xs text-slate-400">Tokens: White Canvas, Cobalt Blue #2563EB, Slate #0F172A</span>
+        <button onclick="copyStitchPrompt()" class="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-colors shadow-md">
+          Copy Google Stitch Prompt
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Sign In Modal -->
+  <div id="signin-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-8 flex flex-col shadow-2xl border border-slate-200 relative">
+      <button onclick="closeModal('signin-modal')" class="cursor-pointer absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors">✕</button>
+      <div class="text-center mb-8">
+        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center mx-auto mb-4 shadow-md shadow-blue-500/20">
+          <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.001 15.085A1.5 1.5 0 0 1 9 16.5" /><circle cx="18.5" cy="8.5" r="3.5" /><circle cx="7.5" cy="16.5" r="5.5" /><circle cx="7.5" cy="4.5" r="2.5" /></svg>
+        </div>
+        <h3 class="text-2xl font-extrabold text-slate-900">Welcome back</h3>
+        <p class="text-sm text-slate-500 mt-1">Sign in to your DEALGRAPH account</p>
+      </div>
+      <form class="space-y-4" onsubmit="event.preventDefault(); triggerSimulatedToast('Sign In Working!'); closeModal('signin-modal');">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Work Email</label>
+          <input type="email" required placeholder="sarah@company.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-semibold text-slate-700">Password</label>
+            <a href="#" class="text-xs font-semibold text-blue-600 hover:text-blue-700">Forgot password?</a>
+          </div>
+          <input type="password" required placeholder="••••••••" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+        </div>
+        <button type="submit" class="cursor-pointer w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/25 transition-all mt-6">Sign In</button>
+      </form>
+      <p class="text-center text-xs text-slate-500 mt-6">
+        Don't have an account? <a href="#" onclick="closeModal('signin-modal'); openModal('getstarted-modal'); return false;" class="font-semibold text-blue-600 hover:text-blue-700">Get started</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Get Started Modal -->
+  <div id="getstarted-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-8 flex flex-col shadow-2xl border border-slate-200 relative">
+      <button onclick="closeModal('getstarted-modal')" class="cursor-pointer absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors">✕</button>
+      <div class="text-center mb-8">
+        <h3 class="text-2xl font-extrabold text-slate-900">Create your account</h3>
+        <p class="text-sm text-slate-500 mt-1">Start connecting your sales and CS teams.</p>
+      </div>
+      <form class="space-y-4" onsubmit="event.preventDefault(); triggerSimulatedToast('Get Started Working!'); closeModal('getstarted-modal');">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">First Name</label>
+            <input type="text" required placeholder="Sarah" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Last Name</label>
+            <input type="text" required placeholder="Connor" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Work Email</label>
+          <input type="email" required placeholder="sarah@company.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Password</label>
+          <input type="password" required placeholder="Create a password" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+        </div>
+        <button type="submit" class="cursor-pointer w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/25 transition-all mt-6">Create Account</button>
+      </form>
+      <p class="text-center text-xs text-slate-500 mt-6">
+        Already have an account? <a href="#" onclick="closeModal('getstarted-modal'); openModal('signin-modal'); return false;" class="font-semibold text-blue-600 hover:text-blue-700">Sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Book Demo Modal -->
+  <div id="bookdemo-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 p-4">
+    <div class="w-full max-w-lg bg-white rounded-3xl p-8 flex flex-col shadow-2xl border border-slate-200 relative">
+      <button onclick="closeModal('bookdemo-modal')" class="cursor-pointer absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-800 transition-colors">✕</button>
+      <div class="mb-8">
+        <h3 class="text-2xl font-extrabold text-slate-900">Book a Demo</h3>
+        <p class="text-sm text-slate-500 mt-2">See how Context Graph can increase your Net Revenue Retention. Tell us a bit about yourself.</p>
+      </div>
+      <form class="space-y-4" onsubmit="event.preventDefault(); triggerSimulatedToast('Demo Booked successfully!'); closeModal('bookdemo-modal');">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Full Name</label>
+          <input type="text" required placeholder="Jane Doe" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Work Email</label>
+          <input type="email" required placeholder="jane@company.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">Company Size</label>
+          <select class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all text-slate-700 bg-white">
+            <option>1 - 50 employees</option>
+            <option>51 - 250 employees</option>
+            <option>251 - 1000 employees</option>
+            <option>1000+ employees</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5 text-left">What are you looking to solve?</label>
+          <textarea rows="3" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all resize-none" placeholder="E.g., Better handover from sales to CS..."></textarea>
+        </div>
+        <button type="submit" class="cursor-pointer w-full py-3.5 rounded-xl bg-slate-900 hover:bg-black text-white font-semibold text-sm shadow-md transition-all mt-4">Schedule Consultation</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-100 bg-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+          S
+        </div>
+        <span class="font-bold text-sm text-slate-900">DEALGRAPH // Context Graph Engine</span>
+      </div>
+
+      <div class="text-xs text-slate-400 text-center sm:text-right">
+        Semakin Aneh Semakin Jago, papoi &lt;3
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Canvas Graph Engine
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let width, height;
+    let nodes = [];
+    let edges = [];
+    let draggedNode = null;
+    let hoveredNode = null;
+    let mouseX = 0, mouseY = 0;
+    let activeFilter = 'all';
+
+    const COLOR_BLUE = '#3B82F6';
+    const COLOR_EMERALD = '#10B981';
+    const COLOR_PURPLE = '#8B5CF6';
+    const COLOR_WHITE = '#FFFFFF';
+
+    function initGraphData() {
+      nodes = [
+        { id: 'acc-1', label: 'Stripe Enterprise Core', type: 'account', x: 0, y: 0, vx: 0, vy: 0, radius: 26, color: COLOR_WHITE, category: 'Core Account', desc: 'Enterprise customer, $240k ARR renewal in 90 days. High multi-threading dependency across 3 departments.' },
+        { id: 'sales-1', label: 'AE Handover // $120k ARR', type: 'sales', x: 0, y: 0, vx: 0, vy: 0, radius: 18, color: COLOR_BLUE, category: 'Sales Pipeline', desc: 'Signed expansion clause for EMEA cloud rollout. Explicit promise made for custom SAML 2.0 integration.' },
+        { id: 'cs-1', label: 'CSM Onboarding Lead', type: 'cs', x: 0, y: 0, vx: 0, vy: 0, radius: 18, color: COLOR_EMERALD, category: 'CS Pod', desc: 'Weekly check-in active. Health score at 94% following executive sponsor reassignment.' },
+        { id: 'risk-1', label: 'Resolved: Ticket #492', type: 'risk', x: 0, y: 0, vx: 0, vy: 0, radius: 19, color: COLOR_PURPLE, category: 'Technical Edge', desc: 'P0 Kafka ingest delay resolved by Solutions Architecture pod. Handover approved.' },
+        { id: 'stakeholder-1', label: 'VP Eng (Champion)', type: 'stakeholder', x: 0, y: 0, vx: 0, vy: 0, radius: 16, color: COLOR_BLUE, category: 'Champion', desc: 'Highly engaged on Slack channel. Direct advocate for 120-seat expansion.' },
+        { id: 'stakeholder-2', label: 'CFO (Budget Owner)', type: 'stakeholder', x: 0, y: 0, vx: 0, vy: 0, radius: 16, color: COLOR_EMERALD, category: 'Stakeholder', desc: 'Approved renewal contract following verified SLA response speed.' },
+        
+        // Second Account Cluster
+        { id: 'acc-2', label: 'Netflix Streaming Group', type: 'account', x: 0, y: 0, vx: 0, vy: 0, radius: 24, color: COLOR_WHITE, category: 'Core Account', desc: 'Strategic customer. 100% adoption on streaming analytics cluster.' },
+        { id: 'sales-2', label: 'Expansion RFP $350k', type: 'sales', x: 0, y: 0, vx: 0, vy: 0, radius: 18, color: COLOR_BLUE, category: 'Sales Pipeline', desc: 'RFP submitted for global edge delivery network intelligence.' },
+        { id: 'cs-2', label: 'Zero Incident QBR', type: 'cs', x: 0, y: 0, vx: 0, vy: 0, radius: 16, color: COLOR_EMERALD, category: 'CS Health', desc: 'Customer Success verified 99.99% uptime benchmark achieved.' }
+      ];
+
+      edges = [
+        { source: 'acc-1', target: 'sales-1', color: COLOR_BLUE, width: 2 },
+        { source: 'acc-1', target: 'cs-1', color: COLOR_EMERALD, width: 2 },
+        { source: 'acc-1', target: 'risk-1', color: COLOR_PURPLE, width: 2 },
+        { source: 'acc-1', target: 'stakeholder-1', color: 'rgba(255, 255, 255, 0.4)', width: 1.5 },
+        { source: 'sales-1', target: 'stakeholder-2', color: COLOR_BLUE, width: 1.5 },
+        { source: 'cs-1', target: 'risk-1', color: COLOR_EMERALD, width: 1.5 },
+        { source: 'acc-2', target: 'sales-2', color: COLOR_BLUE, width: 2 },
+        { source: 'acc-2', target: 'cs-2', color: COLOR_EMERALD, width: 2 },
+        { source: 'acc-1', target: 'acc-2', color: 'rgba(255, 255, 255, 0.15)', width: 1 }
+      ];
+
+      positionInitialNodes();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    function positionInitialNodes() {
+      if (!width || !height) return;
+      nodes.forEach((n, idx) => {
+        const angle = (idx / nodes.length) * Math.PI * 2;
+        const dist = 130 + (idx % 2) * 50;
+        n.x = width / 2 + Math.cos(angle) * dist;
+        n.y = height / 2 + Math.sin(angle) * dist;
+        n.vx = (Math.random() - 0.5) * 0.8;
+        n.vy = (Math.random() - 0.5) * 0.8;
+      });
+    }
+
+    function updatePhysics() {
+      const kRepel = 1800;
+      const kSpring = 0.04;
+      const centerDamp = 0.015;
+
+      const visibleNodes = nodes.filter(n => {
+        if (activeFilter === 'sales') return n.type === 'account' || n.type === 'sales' || n.type === 'stakeholder';
+        if (activeFilter === 'cs') return n.type === 'account' || n.type === 'cs' || n.type === 'risk';
+        return true;
+      });
+
+      for (let i = 0; i < visibleNodes.length; i++) {
+        for (let j = i + 1; j < visibleNodes.length; j++) {
+          const n1 = visibleNodes[i];
+          const n2 = visibleNodes[j];
+          const dx = n2.x - n1.x;
+          const dy = n2.y - n1.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist < 220) {
+            const force = kRepel / (dist * dist);
+            const fx = (dx / dist) * force;
+            const fy = (dy / dist) * force;
+            n1.vx -= fx;
+            n1.vy -= fy;
+            n2.vx += fx;
+            n2.vy += fy;
+          }
+        }
+      }
+
+      edges.forEach(e => {
+        const n1 = nodes.find(n => n.id === e.source);
+        const n2 = nodes.find(n => n.id === e.target);
+        if (n1 && n2) {
+          const dx = n2.x - n1.x;
+          const dy = n2.y - n1.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const targetDist = 110;
+          const force = (dist - targetDist) * kSpring;
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          n1.vx += fx;
+          n1.vy += fy;
+          n2.vx -= fx;
+          n2.vy += fy;
+        }
+      });
+
+      visibleNodes.forEach(n => {
+        if (n === draggedNode) {
+          n.x = mouseX;
+          n.y = mouseY;
+          n.vx = 0;
+          n.vy = 0;
+          return;
+        }
+        n.vx += (width / 2 - n.x) * centerDamp;
+        n.vy += (height / 2 - n.y) * centerDamp;
+        n.vx *= 0.88;
+        n.vy *= 0.88;
+        n.x += n.vx;
+        n.y += n.vy;
+
+        const pad = n.radius + 15;
+        if (n.x < pad) n.x = pad;
+        if (n.x > width - pad) n.x = width - pad;
+        if (n.y < pad) n.y = pad;
+        if (n.y > height - pad) n.y = height - pad;
+      });
+    }
+
+    function renderGraph() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw Edges
+      edges.forEach(e => {
+        const n1 = nodes.find(n => n.id === e.source);
+        const n2 = nodes.find(n => n.id === e.target);
+        if (!n1 || !n2) return;
+
+        const isDim = (activeFilter === 'sales' && n1.type !== 'sales' && n1.type !== 'account' && n1.type !== 'stakeholder') ||
+                      (activeFilter === 'cs' && n1.type !== 'cs' && n1.type !== 'risk' && n1.type !== 'account');
+        if (isDim) return;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(n1.x, n1.y);
+        ctx.lineTo(n2.x, n2.y);
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = e.width || 1.5;
+        ctx.globalAlpha = 0.6;
+        ctx.stroke();
+
+        // Edge particle pulse
+        const t = (Date.now() / 1800) % 1;
+        const px = n1.x + (n2.x - n1.x) * t;
+        const py = n1.y + (n2.y - n1.y) * t;
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Draw Nodes
+      nodes.forEach(n => {
+        const isDim = (activeFilter === 'sales' && n.type !== 'sales' && n.type !== 'account' && n.type !== 'stakeholder') ||
+                      (activeFilter === 'cs' && n.type !== 'cs' && n.type !== 'risk' && n.type !== 'account');
+        if (isDim) return;
+
+        const isHovered = (n === hoveredNode || n === draggedNode);
+
+        ctx.save();
+        // Glow
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.radius + (isHovered ? 8 : 4), 0, Math.PI * 2);
+        ctx.fillStyle = n.color;
+        ctx.globalAlpha = isHovered ? 0.35 : 0.15;
+        ctx.fill();
+
+        // Node Body
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#0F172A';
+        ctx.strokeStyle = n.color;
+        ctx.lineWidth = isHovered ? 3 : 2;
+        ctx.globalAlpha = 1;
+        ctx.fill();
+        ctx.stroke();
+
+        // Inner Dot
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = n.color;
+        ctx.fill();
+
+        // Label
+        ctx.font = `${isHovered ? 'bold 11px' : '10px'} "Plus Jakarta Sans", sans-serif`;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.fillText(n.label, n.x, n.y + n.radius + 15);
+
+        ctx.restore();
+      });
+    }
+
+    function graphLoop() {
+      updatePhysics();
+      renderGraph();
+      requestAnimationFrame(graphLoop);
+    }
+
+    function getPointerPos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function findNodeAt(x, y) {
+      for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        const dx = n.x - x;
+        const dy = n.y - y;
+        if (Math.sqrt(dx * dx + dy * dy) <= n.radius + 10) {
+          return n;
+        }
+      }
+      return null;
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const pos = getPointerPos(e);
+      mouseX = pos.x;
+      mouseY = pos.y;
+      draggedNode = findNodeAt(pos.x, pos.y);
+      if (draggedNode) inspectNode(draggedNode);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const pos = getPointerPos(e);
+      mouseX = pos.x;
+      mouseY = pos.y;
+      hoveredNode = findNodeAt(pos.x, pos.y);
+      canvas.style.cursor = hoveredNode ? 'grab' : 'default';
+    });
+
+    window.addEventListener('mouseup', () => {
+      draggedNode = null;
+    });
+
+    canvas.addEventListener('touchstart', (e) => {
+      const pos = getPointerPos(e);
+      mouseX = pos.x;
+      mouseY = pos.y;
+      draggedNode = findNodeAt(pos.x, pos.y);
+      if (draggedNode) inspectNode(draggedNode);
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!draggedNode) return;
+      const pos = getPointerPos(e);
+      mouseX = pos.x;
+      mouseY = pos.y;
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+      draggedNode = null;
+    });
+
+    function inspectNode(n) {
+      document.getElementById('inspect-title').innerText = n.label;
+      document.getElementById('inspect-desc').innerText = n.desc;
+      document.getElementById('inspect-category').innerText = n.category.toUpperCase();
+      document.getElementById('hud-active-account').innerText = n.label;
+      document.getElementById('inspect-score').innerText = (90 + Math.random() * 9).toFixed(1) + '%';
+    }
+
+    function setGraphFilter(filter) {
+      activeFilter = filter;
+      ['all', 'sales', 'cs'].forEach(f => {
+        const btn = document.getElementById('filter-' + f);
+        if (f === filter) {
+          btn.className = "px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-blue-700 shadow-md";
+        } else {
+          btn.className = "px-4 py-1.5 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-white transition-all";
+        }
+      });
+      triggerSimulatedToast(`Filter switched: ${filter.toUpperCase()} view`);
+    }
+
+    function resetGraphPhysics() {
+      positionInitialNodes();
+      triggerSimulatedToast("↺ Graph re-centered!");
+    }
+
+    // Billing Toggle Logic
+    let isYearly = true;
+    function setBilling(yearly) {
+      isYearly = yearly;
+      const dot = document.getElementById('toggle-dot');
+      const toggle = document.getElementById('billing-toggle');
+      const lMonthly = document.getElementById('label-monthly');
+      const lYearly = document.getElementById('label-yearly');
+
+      if (isYearly) {
+        dot.classList.add('translate-x-5');
+        toggle.classList.replace('bg-slate-300', 'bg-blue-600');
+        lMonthly.classList.replace('text-slate-900', 'text-slate-500');
+        lYearly.classList.replace('text-slate-500', 'text-slate-900');
+        document.getElementById('price-starter').innerText = '$47';
+        document.getElementById('price-growth').innerText = '$79';
+        document.getElementById('price-scale').innerText = '$199';
+      } else {
+        dot.classList.remove('translate-x-5');
+        toggle.classList.replace('bg-blue-600', 'bg-slate-300');
+        lMonthly.classList.replace('text-slate-500', 'text-slate-900');
+        lYearly.classList.replace('text-slate-900', 'text-slate-500');
+        document.getElementById('price-starter').innerText = '$59';
+        document.getElementById('price-growth').innerText = '$99';
+        document.getElementById('price-scale').innerText = '$249';
+      }
+    }
+
+    function toggleBilling() {
+      setBilling(!isYearly);
+    }
+
+    // Direct Figma Vector SVG generator (Ready to paste directly with Cmd+V into Figma)
+    function generateCleanFigmaSvg() {
+      return `<svg width="1440" height="1300" viewBox="0 0 1440 1300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- FIGMA WIREFRAME: DEALGRAPH // Clean Agently SaaS Style -->
+  <!-- 1-Click Paste Vector: #FFFFFF Canvas, #2563EB Royal Blue, #0F172A Slate -->
+  <rect width="1440" height="1300" fill="#FFFFFF"/>
+  
+  <!-- Header Bar -->
+  <rect x="0" y="0" width="1440" height="80" fill="#FFFFFF"/>
+  <line x1="0" y1="80" x2="1440" y2="80" stroke="#F1F5F9" stroke-width="1"/>
+  <rect x="80" y="24" width="32" height="32" rx="8" fill="#2563EB"/>
+  <text x="122" y="46" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="20">DEALGRAPH.</text>
+  
+  <text x="560" y="46" fill="#475569" font-family="Plus Jakarta Sans, sans-serif" font-size="14">Features</text>
+  <text x="650" y="46" fill="#475569" font-family="Plus Jakarta Sans, sans-serif" font-size="14">How It Works</text>
+  <text x="770" y="46" fill="#475569" font-family="Plus Jakarta Sans, sans-serif" font-size="14">Demo</text>
+  <text x="840" y="46" fill="#475569" font-family="Plus Jakarta Sans, sans-serif" font-size="14">Pricing</text>
+  
+  <rect x="1230" y="22" width="130" height="38" rx="19" fill="#2563EB"/>
+  <text x="1260" y="46" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="13">Get Started ↗</text>
+
+  <!-- Hero Section -->
+  <rect x="620" y="120" width="200" height="28" rx="14" fill="#EFF6FF" stroke="#DBEAFE"/>
+  <circle cx="636" cy="134" r="3" fill="#2563EB"/>
+  <text x="646" y="138" fill="#2563EB" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="11">New • Context Graph 3.0</text>
+
+  <text x="720" y="195" text-anchor="middle" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="44">Scale Sales &amp; Serve Customers 24/7</text>
+  <text x="720" y="245" text-anchor="middle" fill="#2563EB" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="44">with Context Graph</text>
+  <text x="720" y="285" text-anchor="middle" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="15">Save hundreds of hours, eliminate account amnesia, and scale retention automatically.</text>
+
+  <rect x="600" y="315" width="130" height="42" rx="21" fill="#2563EB"/>
+  <text x="632" y="341" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="13">Get Started ↗</text>
+  <rect x="745" y="315" width="130" height="42" rx="21" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <text x="772" y="341" fill="#334155" font-family="Plus Jakarta Sans, sans-serif" font-weight="600" font-size="13">Book a Demo</text>
+
+  <!-- Curved Blue Hero Backdrop -->
+  <rect x="140" y="490" width="1160" height="280" rx="60" fill="#2563EB" opacity="0.9"/>
+
+  <!-- Hero Dashboard Floating Card -->
+  <rect x="180" y="390" width="1080" height="480" rx="24" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5"/>
+  <rect x="180" y="390" width="1080" height="45" rx="24" fill="#F8FAFC"/>
+  <circle cx="210" cy="412" r="5" fill="#CBD5E1"/>
+  <circle cx="225" cy="412" r="5" fill="#CBD5E1"/>
+  <circle cx="240" cy="412" r="5" fill="#CBD5E1"/>
+  <text x="260" y="417" fill="#334155" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="12">Dashboard</text>
+
+  <!-- 4 Stat Cards inside Hero Mockup -->
+  <rect x="210" y="460" width="230" height="85" rx="16" fill="#2563EB"/>
+  <text x="230" y="495" fill="#FFFFFF" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="24">24,589</text>
+  <text x="230" y="520" fill="#DBEAFE" font-family="Plus Jakarta Sans, sans-serif" font-size="11">Context Edges Synced</text>
+
+  <rect x="460" y="460" width="230" height="85" rx="16" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="480" y="495" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="24">1m 34s</text>
+  <text x="480" y="520" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="11">AE to CSM Handover</text>
+
+  <rect x="710" y="460" width="230" height="85" rx="16" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="730" y="495" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="24">94%</text>
+  <text x="730" y="520" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="11">Account Health Score</text>
+
+  <rect x="960" y="460" width="230" height="85" rx="16" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="980" y="495" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="24">1,452</text>
+  <text x="980" y="520" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="11">Active Accounts</text>
+
+  <!-- 3 Feature Columns Below -->
+  <rect x="180" y="930" width="330" height="260" rx="20" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="205" y="1130" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="16">Unified Context Inbox</text>
+  <text x="205" y="1155" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="12">Manage every customer commitment in 1 place.</text>
+
+  <rect x="555" y="930" width="330" height="260" rx="20" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="580" y="1130" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="16">Smart Signal Routing</text>
+  <text x="580" y="1155" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="12">Route intent directly to AE, CSM or engineer.</text>
+
+  <rect x="930" y="930" width="330" height="260" rx="20" fill="#F8FAFC" stroke="#E2E8F0"/>
+  <text x="955" y="1130" fill="#0F172A" font-family="Plus Jakarta Sans, sans-serif" font-weight="700" font-size="16">Performance Analytics</text>
+  <text x="955" y="1155" fill="#64748B" font-family="Plus Jakarta Sans, sans-serif" font-size="12">Real-time health, retention and churn scores.</text>
+</svg>`;
+    }
+
+    function getStitchPromptText() {
+      return `Context: A clean, modern B2B SaaS web application inspired by "Agently" called "DEALGRAPH // Context Graph for Customer Success & Sales".
+
+User: Revenue Leaders, Account Executives (AEs), Customer Success Managers (CSMs), and RevOps teams looking to eliminate account context amnesia during customer handover.
+
+Design Tokens & Visual Style:
+- Clean white background (#FFFFFF) with ultra-light slate backgrounds (#F8FAFC, #F1F5F9).
+- Brand Accent: Royal / Cobalt Blue (#2563EB, #1D4ED8).
+- High-contrast Slate Black typography (#0F172A).
+- Curved royal blue gradient backdrop behind the main floating hero dashboard mockup.
+- Micro-pill badges: Light blue background (#EFF6FF), border (#DBEAFE), blue text (#2563EB), rounded-full, with blue dot bullet (•).
+- Cards: Soft rounded corners (rounded-3xl / 24px), clean 1px border (#E2E8F0), subtle elevation shadow.
+- Font family: "Plus Jakarta Sans" for geometric modern headlines, clean clean UI metrics.
+
+Page Sections Architecture:
+1. Header:
+   - Left: Rounded blue icon + bold "DEALGRAPH."
+   - Center links: Features, How It Works, Demo, Pricing.
+   - Right: "Get Started ↗" blue rounded-full CTA button.
+2. Hero Section:
+   - Pill badge: "• New • Context Graph 3.0"
+   - Headline: "Scale Sales & Serve Customers 24/7 with Context Graph"
+   - Subhead with dual rounded CTAs ("Get Started ↗" in solid blue, "Book a Demo" in bordered white).
+   - Floating Card Mockup over a curved cobalt blue backdrop:
+     - 4 top stat cards (Context Edges Synced, Handover Time, Health Score 94%, Active Accounts).
+     - Net Revenue Retention Bar Chart with monthly active tooltip.
+     - "Active Graph Agents" list with avatars and active badges.
+   - Client logo strip ("Already trusted by fast-growing revenue teams").
+3. Inefficiency Alert:
+   - Pill badge: "• Inefficiency Alert"
+   - Headline: "Manual Handover Is Quietly Killing Your Net Revenue Retention"
+   - Floating rounded capsule cloud with 8 pain points (scattered Slack notes, missed promises, blind renewals).
+4. Feature Triplet Cards:
+   - 3 clean white bento cards: Unified Context Inbox, Smart Relationship Routing, Performance Analytics.
+5. Two Split Feature Rows:
+   - Row 1: AI Agent & Node Builder (4-grid icons + right floating stakeholder card).
+   - Row 2: Multi-Agent Flow Builder (Left connected flow nodes: Start Point -> Condition -> Handover + Right checklist).
+6. Ticketing & Pipeline Section:
+   - Pill badge: "• Advanced Feature"
+   - Headline: "Ticketing System & Sales Pipeline"
+   - Right card mockup: Kanban stage cards ($170k New Deals, $140k Technical Handover, $120k Active Onboarding, $200k Renewal).
+7. Full-Width Deep Blue Demo Section:
+   - Gradient deep cobalt blue container with interactive neural account graph canvas simulator.
+8. Integrations & 4 Gradient Stat Cards:
+   - 12 circular app icons (Salesforce, Zendesk, Slack, Gong, Linear, Notion, Hubspot).
+   - 4 Vibrant Stat Cards: Cyan (7M+ Conversations Automated), Purple (497K+ Issues Resolved), Pink (247K+ Leads Qualified), Blue (82% Less Manual Workload).
+9. Testimonial:
+   - Clean white card with portrait avatar and VP Customer Success quote.
+10. Pricing Plans (3 Cards):
+    - Monthly / Yearly toggle with "-20%" badge.
+    - Starter ($59), Growth ($99 - "Popular" badge & solid blue CTA), Scale ($249).
+    - Clean blue checkmark feature lists.`;
+    }
+
+    // Robust multi-method clipboard copier for browser/iframe security contexts
+    function copyFigmaSvgDirect(event) {
+      if (event) event.stopPropagation();
+      const svg = generateCleanFigmaSvg();
+      let copied = false;
+
+      // Method A: document.execCommand with hidden textarea (safest inside iframes)
+      try {
+        const dummy = document.createElement("textarea");
+        dummy.value = svg;
+        dummy.style.position = "fixed";
+        dummy.style.top = "0";
+        dummy.style.left = "0";
+        dummy.style.width = "2em";
+        dummy.style.height = "2em";
+        dummy.style.padding = "0";
+        dummy.style.border = "none";
+        dummy.style.outline = "none";
+        dummy.style.boxShadow = "none";
+        dummy.style.background = "transparent";
+        dummy.style.opacity = "0.01";
+        document.body.appendChild(dummy);
+        dummy.focus();
+        dummy.select();
+        dummy.setSelectionRange(0, 999999);
+        copied = document.execCommand("copy");
+        document.body.removeChild(dummy);
+      } catch (e) {
+        console.warn("execCommand failed:", e);
+      }
+
+      if (copied) {
+        triggerSimulatedToast("✓ Figma Vector copied! Press Cmd+V in Figma to paste.", true);
+        return;
+      }
+
+      // Method B: navigator.clipboard fallback
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(svg).then(() => {
+          triggerSimulatedToast("✓ Figma Vector copied! Press Cmd+V in Figma to paste.", true);
+        }).catch(() => {
+          // If browser completely blocks clipboard, open the modal with direct download & raw text
+          openModal('figma-modal');
+        });
+      } else {
+        openModal('figma-modal');
+      }
+    }
+
+    // Direct SVG File Downloader (100% works even if clipboard permissions are disabled)
+    function downloadFigmaSvg() {
+      const svg = generateCleanFigmaSvg();
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "DEALGRAPH-context-graph-wireframe.svg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      triggerSimulatedToast("✓ Downloaded DEALGRAPH-context-graph-wireframe.svg! Drag into Figma.", true);
+    }
+
+    function selectAndCopyRawSvg() {
+      const area = document.getElementById('raw-figma-svg');
+      area.select();
+      area.setSelectionRange(0, 999999);
+      try {
+        document.execCommand('copy');
+        triggerSimulatedToast("✓ Raw SVG copied to clipboard!", true);
+      } catch (e) {
+        triggerSimulatedToast("Press Ctrl+C / Cmd+C to copy selected text.", false);
+      }
+    }
+
+    function copyStitchPrompt() {
+      const prompt = getStitchPromptText();
+      let copied = false;
+      try {
+        const dummy = document.createElement("textarea");
+        dummy.value = prompt;
+        dummy.style.position = "fixed";
+        dummy.style.top = "0";
+        dummy.style.left = "0";
+        dummy.style.opacity = "0.01";
+        document.body.appendChild(dummy);
+        dummy.focus();
+        dummy.select();
+        copied = document.execCommand("copy");
+        document.body.removeChild(dummy);
+      } catch (e) {}
+
+      if (copied) {
+        triggerSimulatedToast("✓ Google Stitch Prompt copied! Paste at stitch.withgoogle.com", true);
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(prompt).then(() => {
+          triggerSimulatedToast("✓ Google Stitch Prompt copied! Paste at stitch.withgoogle.com", true);
+        });
+      }
+    }
+
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (id === 'stitch-modal') {
+        document.getElementById('stitch-prompt-container').innerText = getStitchPromptText();
+      } else if (id === 'figma-modal') {
+        document.getElementById('raw-figma-svg').value = generateCleanFigmaSvg();
+      }
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    function triggerSimulatedToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const indicator = document.getElementById('toast-indicator');
+      document.getElementById('toast-text').innerText = msg;
+      
+      if (isSuccess) {
+        indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+      } else {
+        indicator.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+      }
+
+      toast.classList.remove('-translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-16', 'opacity-0');
+      }, 4200);
+    }
+
+    window.onload = function() {
+      resizeCanvas();
+      initGraphData();
+      graphLoop();
+
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        positionInitialNodes();
+      });
+    };
+  </script>
+</body>
+</html>

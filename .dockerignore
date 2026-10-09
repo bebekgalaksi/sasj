@@ -1,0 +1,9 @@
+.git
+.github
+*.csv
+*.jsonl
+*.pdf
+dataset/
+dataset_clean/
+preprocessing_data/
+docs/
