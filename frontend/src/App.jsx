@@ -98,7 +98,7 @@ export default function App() {
         </div>
         <div className="flex flex-col">
           <span className="font-bold text-xl tracking-tight text-slate-900">DEALGRAPH<span className="text-blue-600">.</span></span>
-          <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase font-mono">Warm Intro Engine</span>
+          <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase font-mono">Find the people who matter</span>
         </div>
       </a>
 
@@ -115,7 +115,7 @@ export default function App() {
       {/* Status Indicator */}
       <div className="flex items-center gap-3">
         <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> REST API Online :8081
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active
         </span>
       </div>
     </div>
@@ -126,7 +126,7 @@ export default function App() {
     <div className="max-w-4xl mx-auto px-4 text-center">
       <div className="inline-block mb-4">
         <div className="pill-badge uppercase tracking-widest text-[10px]">
-          TEAM 3 • SALES INTELLIGENCE • PT KASIRNUSA TEKNOLOGI
+          Relationship Path Finder • PT KASIRNUSA TEKNOLOGI
         </div>
       </div>
 
