@@ -86,7 +86,7 @@ const GRAPH_DATA = {
 
         // --- Products, Bugs, & Competitor ---
         { id: 'FEAT-07', label: 'FEAT-07 (Integrasi Akuntansi)', type: 'feature', role: 'Dijanjikan Q3 2026 · Tertunda API Accurate', group: 'feature' },
-        { id: 'BUG-401', label: 'BUG-401 (Sinkronisasi Offline)', type: 'feature', role: 'Penyebab Drop Transaksi di C03 & C05', group: 'feature' },
+        { id: 'BUG-412', label: 'BUG-412 (Sinkronisasi Offline)', type: 'feature', role: 'Penyebab Drop Transaksi di C03 & C05', group: 'feature' },
         { id: 'COMP_KASIRPRO', label: 'Kompetitor KasirPro', type: 'competitor', role: 'Pesaing Harga Murah (Tawaran -20% di P02, dilirik C01)', group: 'competitor' },
     ],
 
@@ -144,8 +144,8 @@ const GRAPH_DATA = {
         { from: 'E03', to: 'C03', label: 'DIPEGANG_OLEH (AM Apotek)', type: 'manages', weight: 7 },
         { from: 'K079', to: 'C03', label: 'BEKERJA_DI (Manajer Ops)', type: 'works_at', weight: 7 },
         { from: 'K021', to: 'C03', label: 'BEKERJA_DI (Staf IT)', type: 'works_at', weight: 5 },
-        { from: 'C03', to: 'BUG-401', label: 'DISEBABKAN_OLEH (Issue sync offline)', type: 'caused_by', weight: 6, evidence: ['I0312'] },
-        { from: 'C05', to: 'BUG-401', label: 'DISEBABKAN_OLEH (Issue sync offline)', type: 'caused_by', weight: 5 },
+        { from: 'C03', to: 'BUG-412', label: 'DISEBABKAN_OLEH (Issue sync offline)', type: 'caused_by', weight: 6, evidence: ['I0312'] },
+        { from: 'C05', to: 'BUG-412', label: 'DISEBABKAN_OLEH (Issue sync offline)', type: 'caused_by', weight: 5 },
 
         // === Decision Log Precedents ===
         { from: 'E01', to: 'D-2025-11', label: 'MENYETUJUI (Diskon 15% C01 volume 42)', type: 'approves', weight: 6, evidence: ['I0061'] },
@@ -375,7 +375,7 @@ const GRAPH_DATA = {
                 </ul>
                 <p><strong>2. C03 (Apotek Sehat Sentosa) — Risiko Sedang-Tinggi:</strong></p>
                 <ul>
-                    <li>Penurunan transaksi 35% di 6 outlet akibat kendala sinkronisasi offline (BUG-401). Butuh penanganan cepat dari support lead Maya Kusuma.</li>
+                    <li>Penurunan transaksi 35% di 6 outlet akibat kendala sinkronisasi offline (BUG-412). Butuh penanganan cepat dari support lead Maya Kusuma.</li>
                 </ul>
             `
         }

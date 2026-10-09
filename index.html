@@ -124,7 +124,7 @@
       </a>
 
       <!-- Navigation Links -->
-      <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+      <nav class="hidden md:flex items-center gap-7 text-sm font-semibold text-slate-600">
         <a href="#analisis-eksekutif" class="hover:text-blue-600 transition-colors">Analisis Eksekutif</a>
         <a href="#deepdive-p01" class="hover:text-blue-600 transition-colors">P01 Mandala</a>
         <a href="#deepdive-p04" class="hover:text-blue-600 transition-colors">P04 Nirwana</a>
@@ -133,6 +133,7 @@
         </a>
         <a href="#demo" class="hover:text-blue-600 transition-colors">Peta Graph</a>
         <a href="#preseden" class="hover:text-blue-600 transition-colors">Log Keputusan</a>
+        <a href="#dataset-matrix" class="hover:text-blue-600 transition-colors text-indigo-600 font-bold">Matriks Data</a>
       </nav>
 
       <!-- Action Buttons & Mobile Hamburger -->
@@ -159,6 +160,7 @@
       <a href="#path-finder" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-blue-600">⚡ Path Finder</a>
       <a href="#demo" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">Peta Graph</a>
       <a href="#preseden" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-slate-600 hover:text-blue-600">Log Keputusan</a>
+      <a href="#dataset-matrix" onclick="toggleMobileMenu()" class="block py-2 text-sm font-semibold text-indigo-600 font-bold">Matriks Variabel Data</a>
       <div class="pt-2 flex items-center gap-2">
         <button onclick="openModal('summary-modal'); toggleMobileMenu();" class="w-1/2 py-2 rounded-full text-xs font-bold text-slate-700 bg-slate-100 text-center">
           📋 Summary
@@ -937,6 +939,147 @@ Account Manager · KasirNusa
           </p>
         </div>
 
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================================================== -->
+  <!-- MATRIKS KORELASI VARIABEL (DATASET_CLEAN SYNTHESIS)     -->
+  <!-- ======================================================== -->
+  <section id="dataset-matrix" class="py-20 bg-white border-t border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+      
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="pill-badge mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <span>Sintesis Lengkap dataset_clean (15 Sumber Data)</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Bagaimana Seluruh Variabel Saling Terhubung?
+        </h2>
+        <p class="mt-3 text-sm text-slate-500 leading-relaxed">
+          Setiap file dalam <code class="font-mono text-blue-600 bg-blue-50 px-2 py-0.5 rounded">dataset_clean</code> memiliki relasi terintegrasi. Context graph menghubungkan variabel CRM, interaksi, riwayat karir, telemetri produk, dan log preseden eksekutif menjadi satu ekosistem intelijen.
+        </p>
+      </div>
+
+      <!-- 6 Bento Cards Matriks Variabel -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card 1: Poros CRM Accounts -->
+        <div class="p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-mono text-[10px] font-bold">crm_accounts.csv</span>
+            <span class="text-[10px] font-mono text-slate-400">45 Akun</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Poros Utama (account_id)</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Menjadi foreign key universal yang mengikat <strong>620 outlets</strong>, <strong>22 deals</strong>, <strong>40 kontrak billing</strong>, <strong>30 log keputusan</strong>, <strong>640 tiket support</strong>, dan <strong>10.000 log transaksi</strong>. Variabel <code class="font-mono text-blue-600">account_owner_id</code> menautkan ke karyawan Sales/AM (<code class="font-mono">employees.csv</code>) dan <code class="font-mono">champion_contact_id</code> ke kontak champion.
+          </p>
+          <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Relasi: 8 Tabel</span>
+            <span class="text-emerald-600 font-bold">100% Terpetakan</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Riwayat Karir & Overlap Alumni -->
+        <div class="p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 font-mono text-[10px] font-bold">contact_employment_history.csv</span>
+            <span class="text-[10px] font-mono text-slate-400">217 Karir</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Alumni Network &amp; Job Switch</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Kolom <code class="font-mono text-purple-600">is_current</code> dan tanggal masa depan mendeteksi dua fakta krusial:
+            <br>• <strong>P04:</strong> Overlap 5 tahun (2015–2019) antara <strong>Budi Santoso (CFO C06)</strong> &amp; <strong>Hartono Gunawan (Dirut P04)</strong> di <em>PT Sentosa Abadi Group</em>.
+            <br>• <strong>P01:</strong> Perpindahan <strong>Rina Hapsari (K017)</strong> dari Head of Ops C01 ke GM Ops Mandala per 1 Sep 2026.
+          </p>
+          <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Relasi: crm_contacts, crm_accounts</span>
+            <span class="text-purple-600 font-bold">Kunci Warm Intro</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Log Keputusan & Kontrak Billing -->
+        <div class="p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-mono text-[10px] font-bold">decision_log ↔ contracts_billing</span>
+            <span class="text-[10px] font-mono text-slate-400">30 Keputusan</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Preseden Diskon &amp; Bukti Interaksi</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Aturan diskon &gt;10% dibuktikan oleh <code class="font-mono text-emerald-600">contracts_billing.csv</code>: akun C01 (diskon 15%) memiliki kolom <code class="font-mono">decision_id: D-2025-11</code>, diverifikasi oleh bukti email <code class="font-mono">I0061</code> yang disetujui VP Sales Andi Wiratama (<code class="font-mono">E01</code>). Kontrak lainnya (&le;10%) bernilai <code class="font-mono">No Decision Linked</code>.
+          </p>
+          <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Relasi: employees, interactions</span>
+            <span class="text-emerald-600 font-bold">Dasar Hukum Penawaran</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Tiket Support ↔ Bug ↔ Rilis -->
+        <div class="p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-mono text-[10px] font-bold">support_tickets ↔ bugs ↔ releases</span>
+            <span class="text-[10px] font-mono text-slate-400">640 Tiket</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Dampak Teknis: Anomali Data vs Churn</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Foreign key <code class="font-mono text-rose-600">bug_id: BUG-412</code> pada rilis 4.12 membuktikan bahwa drop transaksi 35% di akun <strong>C03 (Apotek Sehat Sentosa)</strong> dan <strong>C05</strong> disebabkan oleh kegagalan sinkronisasi offline, bukan karena pelanggan berhenti menggunakan aplikasi KasirNusa.
+          </p>
+          <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Relasi: product_usage, features</span>
+            <span class="text-rose-600 font-bold">Validasi Telemetri</span>
+          </div>
+        </div>
+
+        <!-- Card 5: Deals ↔ Kompetitor & Pemulihan Pipeline -->
+        <div class="p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-mono text-[10px] font-bold">crm_deals ↔ decision_log</span>
+            <span class="text-[10px] font-mono text-slate-400">22 Deals</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Strategi Kompetitor (KasirPro)</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Tabel <code class="font-mono text-amber-600">crm_deals.csv</code> mencatat ancaman diskon 20% dari kompetitor <strong>KasirPro</strong> di P02 dan C23. Preseden <code class="font-mono">D-2025-02</code> menolak perang harga, lalu <code class="font-mono">D-2025-06</code> menerapkan strategi winback pilot paket Starter 6 outlet tanpa diskon hingga deal dimenangkan kembali (<code class="font-mono">DL-007</code>).
+          </p>
+          <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Relasi: decision_log, crm_accounts</span>
+            <span class="text-amber-600 font-bold">Strategi Non-Diskon</span>
+          </div>
+        </div>
+
+        <!-- Card 6: Telemetri Penggunaan & Roadmap Fitur -->
+        <div class="p-6 rounded-3xl bg-slate-50/70 border border-slate-200/90 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-mono text-[10px] font-bold">feature_usage ↔ features.csv</span>
+            <span class="text-[10px] font-mono text-slate-400">1.178 Log</span>
+          </div>
+          <h4 class="font-bold text-slate-900 text-sm">Roadmap Janji Fitur &amp; Mitigasi Risiko</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Data telemetri memetakan adopsi 6 fitur utama. Janji <code class="font-mono text-indigo-600">FEAT-07</code> (integrasi akuntansi) yang tertunda akibat API Accurate (<code class="font-mono">I0258</code> dan log eskalasi <code class="font-mono">D-2026-08</code>) menjadi alarm mitigasi risiko penting agar Sales tidak mengulang janji palsu saat mengajukan proposal ke Mandala (P01).
+          </p>
+          <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] font-mono text-slate-500">
+            <span>Relasi: releases, decision_log</span>
+            <span class="text-indigo-600 font-bold">Mitigasi Resiko Sales</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Data Connectivity Summary Badge Bar -->
+      <div class="p-4 sm:p-6 rounded-2xl bg-blue-50/60 border border-blue-100 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+            ✓
+          </div>
+          <div>
+            <span class="font-bold text-slate-900">Seluruh 15 File &amp; Puluhan Variabel Telah Tervalidasi Utuh</span>
+            <p class="text-slate-500 text-[11px] mt-0.5">Semua relasi foreign key, riwayat tanggal, status janji, dan tiket bug telah disintesis ke dalam Context Graph.</p>
+          </div>
+        </div>
+        <a href="#path-finder" class="px-5 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold transition-all shadow-sm whitespace-nowrap">
+          Eksplorasi Jalur Graph ➔
+        </a>
       </div>
 
     </div>
