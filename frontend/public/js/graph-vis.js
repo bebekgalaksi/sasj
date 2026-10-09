@@ -4,9 +4,9 @@ let visNetwork = null;
 let graphNodesDataSet = null;
 let graphEdgesDataSet = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-    initDynamicVisGraph();
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     initDynamicVisGraph();
+// });
 
 async function initDynamicVisGraph() {
     const container = document.getElementById('vis-container');
@@ -18,13 +18,13 @@ async function initDynamicVisGraph() {
 
         // Color mapping by node type
         const typeColors = {
-            kasirnusa: { background: '#2563EB', border: '#1D4ED8', font: '#FFFFFF' },
-            dm: { background: '#9333EA', border: '#7E22CE', font: '#FFFFFF' },
-            prospect: { background: '#059669', border: '#047857', font: '#FFFFFF' },
-            customer: { background: '#0284C7', border: '#0369A1', font: '#FFFFFF' },
-            org: { background: '#F59E0B', border: '#D97706', font: '#FFFFFF' },
-            contact: { background: '#64748B', border: '#475569', font: '#FFFFFF' },
-            deal: { background: '#E11D48', border: '#BE123C', font: '#FFFFFF' }
+            kasirnusa: { background: '#0F172A', border: '#2563EB', font: '#FFFFFF' },
+            dm: { background: '#0F172A', border: '#9333EA', font: '#FFFFFF' },
+            prospect: { background: '#0F172A', border: '#059669', font: '#FFFFFF' },
+            customer: { background: '#0F172A', border: '#0284C7', font: '#FFFFFF' },
+            org: { background: '#0F172A', border: '#F59E0B', font: '#FFFFFF' },
+            contact: { background: '#0F172A', border: '#64748B', font: '#FFFFFF' },
+            deal: { background: '#0F172A', border: '#E11D48', font: '#FFFFFF' }
         };
 
         const visNodes = data.nodes.map(n => {
@@ -32,14 +32,15 @@ async function initDynamicVisGraph() {
             return {
                 id: n.id,
                 label: `${n.label}\n(${n.role})`,
-                shape: n.type === 'dm' || n.type === 'prospect' ? 'diamond' : 'box',
+                shape: 'dot',
+                size: 16,
                 color: {
                     background: colors.background,
                     border: colors.border,
-                    highlight: { background: '#3B82F6', border: '#1D4ED8' }
+                    highlight: { background: '#1E293B', border: colors.border }
                 },
                 font: { color: colors.font, face: 'Plus Jakarta Sans', size: 11, bold: true },
-                margin: 10,
+                borderWidth: 2,
                 shadow: true
             };
         });

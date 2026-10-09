@@ -3,11 +3,11 @@
 let currentProspectId = 'P01';
 let cachedEntities = { companies: [], persons: [] };
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadPathFinder('P01');
-    loadEntitiesAndInitCalculator();
-    loadParameterAnalysis();
-});
+// document.addEventListener('DOMContentLoaded', () => {
+//     loadPathFinder('P01');
+//     loadEntitiesAndInitCalculator();
+//     loadParameterAnalysis();
+// });
 
 // Toast notification helper
 function showToast(message) {
@@ -194,7 +194,7 @@ async function runCalculatorQuery() {
 // Fetch Path Finder Solver Data from Backend API
 async function loadPathFinder(prospectId) {
     currentProspectId = prospectId;
-    
+
     // Update Button Tabs UI
     const btnP01 = document.getElementById('btn-p01');
     const btnP04 = document.getElementById('btn-p04');
@@ -221,7 +221,7 @@ async function loadPathFinder(prospectId) {
     try {
         const response = await fetch(`/api/pathfinder?prospect_id=${prospectId}`);
         const data = await response.json();
-        
+
         if (data.error) {
             container.innerHTML = `<div class="lg:col-span-3 p-6 text-red-500 font-bold">${data.error}</div>`;
             return;
@@ -237,7 +237,7 @@ async function loadPathFinder(prospectId) {
                 <!-- Golden Path Card -->
                 <div class="bg-white rounded-2xl border-2 border-blue-600 p-6 shadow-xl space-y-5 relative overflow-hidden">
                     <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-extrabold uppercase px-4 py-1 rounded-bl-xl shadow-md">
-                        🔥 JALUR KONEKSI TERPERDEK & TERKUAT
+                        JALUR KONEKSI TERPERDEK & TERKUAT
                     </div>
 
                     <div class="flex items-center gap-3">
@@ -246,7 +246,7 @@ async function loadPathFinder(prospectId) {
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-slate-900">${best.title}</h3>
-                            <p class="text-xs text-slate-500">Nilai Potensi: <strong class="text-blue-600">Rp ${intComma(deal.nilai_tahunan)} / th</strong> (60 outlet) · Stage: ${deal.stage}</p>
+                            <p class="text-xs text-slate-500">Potentional Value: <strong class="text-blue-600">Rp ${intComma(deal.nilai_tahunan)} / th</strong> (60 outlet) · Stage: ${deal.stage}</p>
                         </div>
                     </div>
 
@@ -263,7 +263,7 @@ async function loadPathFinder(prospectId) {
                     <!-- Decision Maker Highlight -->
                     <div class="p-4 rounded-xl bg-purple-50/70 border border-purple-200 space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-purple-900 uppercase tracking-wider">🎯 Decision Maker Sebenarnya: ${best.decision_maker.name}</span>
+                            <span class="text-xs font-bold text-purple-900 uppercase tracking-wider"> ${best.decision_maker.name}</span>
                             <span class="px-2.5 py-0.5 rounded-full bg-purple-200 text-purple-800 font-extrabold text-[10px]">${best.decision_maker.title}</span>
                         </div>
                         <p class="text-xs text-purple-950 leading-relaxed">${best.decision_maker.reason}</p>
@@ -271,7 +271,7 @@ async function loadPathFinder(prospectId) {
 
                     <!-- Evidence & Edge Explanation -->
                     <div class="space-y-2">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Bukti Relasi & Bobot Grafik:</h4>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Relational & Graph Weight:</h4>
                         <div class="space-y-2">
                             ${best.edges_explained.map(edge => `
                                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-start justify-between text-xs gap-3">
@@ -293,7 +293,7 @@ async function loadPathFinder(prospectId) {
                             <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                             </svg>
-                            <h4 class="text-sm font-bold tracking-tight">Draft Pesan Intro Kontekstual</h4>
+                            <h4 class="text-sm font-bold tracking-tight">Introduction Message Text</h4>
                         </div>
                         <button onclick="copyToClipboard(\`${escapeQuote(best.draft_email.body)}\`)" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition-all active:scale-95 flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -362,7 +362,7 @@ async function loadParameterAnalysis() {
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Dataset yang Digunakan (Tim 3)
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Dataset yang Digunakan
                     </h3>
                     <span class="text-xs text-slate-400 font-mono">7 Dataset Files</span>
                 </div>
@@ -381,7 +381,7 @@ async function loadParameterAnalysis() {
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Dataset yang Dieliminasi (Alasan Ilmiah)
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Dataset yang Dieliminasi
                         </h3>
                         <span class="text-xs text-slate-400 font-mono">4 Dataset Files</span>
                     </div>
