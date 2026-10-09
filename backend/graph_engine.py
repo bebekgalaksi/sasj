@@ -6,6 +6,11 @@ import urllib.parse
 from pathlib import Path
 from collections import defaultdict, deque
 
+try:
+    from edge_rag import EdgeRAGRetriever, JevSystemOneEvaluator
+except ImportError:
+    from backend.edge_rag import EdgeRAGRetriever, JevSystemOneEvaluator
+
 def load_env_file(base_dir):
     env_vars = {}
     env_path = Path(base_dir) / ".env"
@@ -36,13 +41,38 @@ class DynamicGraphEngine:
         self.employees = {}
         self.interactions = []
         self.decisions = {}
+        self.edge_eval_cache = {}
         
         self.load_data()
+        self.retriever = EdgeRAGRetriever(self)
+        self.jev_evaluator = JevSystemOneEvaluator(api_key=self.get_jev_api_key())
         self.build_graph()
 
     def get_api_key(self):
         env_vars = load_env_file(self.base_dir)
         return env_vars.get("GEMINI_API_KEY") or os.environ.get("GEMINI_API_KEY")
+
+    def get_jev_api_key(self):
+        env_vars = load_env_file(self.base_dir)
+        return (
+            env_vars.get("JEV_API_KEY")
+            or env_vars.get("TYPESAFE_API_KEY")
+            or env_vars.get("OPENROUTER_API_KEY")
+            or os.environ.get("JEV_API_KEY")
+            or os.environ.get("TYPESAFE_API_KEY")
+        )
+
+    def evaluate_edge_dynamic(self, source_id: str, target_id: str, fallback_weight: float = 8.0) -> dict:
+        pair_key = f"{source_id}->{target_id}"
+        if pair_key in self.edge_eval_cache:
+            return self.edge_eval_cache[pair_key]
+
+        rag_ctx = self.retriever.retrieve_context(source_id, target_id)
+        self.jev_evaluator.api_key = self.get_jev_api_key()
+        eval_res = self.jev_evaluator.evaluate(rag_ctx)
+        
+        self.edge_eval_cache[pair_key] = eval_res
+        return eval_res
 
     def _read_csv(self, file_path):
         rows = []
@@ -206,7 +236,7 @@ class DynamicGraphEngine:
                 self.adj[target_node].append((c_id, 7, edge["label"]))
                 org_members[org].append(emp)
 
-        # Alumni Overlaps
+        # Alumni Overlaps (Evaluated dynamically via RAG + Jev System One)
         for org, members in org_members.items():
             if len(members) >= 2:
                 for i in range(len(members)):
@@ -214,31 +244,70 @@ class DynamicGraphEngine:
                         m1 = members[i]
                         m2 = members[j]
                         if m1["contact_id"] != m2["contact_id"]:
+                            c1_id = m1["contact_id"]
+                            c2_id = m2["contact_id"]
+                            eval_res = self.evaluate_edge_dynamic(c1_id, c2_id, fallback_weight=9.0)
+                            w = eval_res.get("weight", 9.0)
+                            rel_type = eval_res.get("relation_type", "ALUMNI_EX_COLLEAGUE")
+                            label = f"SALING_KENAL (Alumni {org}) [{rel_type}: {w}/10]"
                             edge = {
-                                "from": m1["contact_id"],
-                                "to": m2["contact_id"],
-                                "label": f"SALING_KENAL (Ex-Kolega di {org})",
+                                "from": c1_id,
+                                "to": c2_id,
+                                "label": label,
                                 "type": "alumni",
-                                "weight": 10
+                                "weight": w,
+                                "jev": eval_res
                             }
                             self.edges.append(edge)
-                            self.adj[m1["contact_id"]].append((m2["contact_id"], 10, edge["label"]))
-                            self.adj[m2["contact_id"]].append((m1["contact_id"], 10, edge["label"]))
+                            self.adj[c1_id].append((c2_id, w, label))
+                            self.adj[c2_id].append((c1_id, w, label))
 
-        # Account Managers to Accounts
+        # Direct Communication & Interaction Edges (RAG Grounded)
+        inter_pairs = set()
+        for inter in self.interactions:
+            peserta = inter.get("peserta", "").split(";")
+            emps = [p for p in peserta if p.startswith("E") and p in self.nodes]
+            cnts = [p for p in peserta if p.startswith("K") and p in self.nodes]
+            for emp_id in emps:
+                for cnt_id in cnts:
+                    inter_pairs.add((emp_id, cnt_id))
+
+        for emp_id, cnt_id in inter_pairs:
+            eval_res = self.evaluate_edge_dynamic(emp_id, cnt_id)
+            w = eval_res.get("weight", 8.0)
+            n_ev = eval_res.get("evidence_count", 0)
+            rel_type = eval_res.get("relation_type", "COMMUNICATION")
+            label = f"KOMUNIKASI ({n_ev}x) [{rel_type}: {w}/10]"
+            edge = {
+                "from": emp_id,
+                "to": cnt_id,
+                "label": label,
+                "type": "interaction",
+                "weight": w,
+                "jev": eval_res
+            }
+            self.edges.append(edge)
+            self.adj[emp_id].append((cnt_id, w, label))
+            self.adj[cnt_id].append((emp_id, w, label))
+
+        # Account Managers to Accounts (RAG-evaluated relationship)
         for acc_id, acc in self.accounts.items():
             am_id = acc.get("assigned_am_id")
             if am_id and am_id in self.nodes:
+                eval_res = self.evaluate_edge_dynamic(am_id, acc_id, fallback_weight=8.5)
+                w = eval_res.get("weight", 8.5)
+                label = f"ACCOUNT_MANAGER ({acc.get('nama', acc_id)}) [Skor: {w}/10]"
                 edge = {
                     "from": am_id,
                     "to": acc_id,
-                    "label": "ACCOUNT_MANAGER",
+                    "label": label,
                     "type": "manages",
-                    "weight": 8
+                    "weight": w,
+                    "jev": eval_res
                 }
                 self.edges.append(edge)
-                self.adj[am_id].append((acc_id, 8, edge["label"]))
-                self.adj[acc_id].append((am_id, 8, edge["label"]))
+                self.adj[am_id].append((acc_id, w, label))
+                self.adj[acc_id].append((am_id, w, label))
 
     def get_entities(self):
         companies = []
