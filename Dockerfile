@@ -1,12 +1,20 @@
-FROM nginx:alpine
+FROM python:3.11-slim
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-# Copy all static application files to nginx public html directory
-COPY . /usr/share/nginx/html/
+# Ensure logs are flushed immediately
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8081
 
-# Expose port 80
-EXPOSE 80
+# Copy datasets, backend, and frontend
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
+COPY dataset/ ./dataset/
+COPY dataset_clean/ ./dataset_clean/
+COPY .env* ./
 
-CMD ["nginx", "-g", "daemon off;"]
+# Expose application port
+EXPOSE 8081
+
+# Run server
+CMD ["python", "backend/server.py"]

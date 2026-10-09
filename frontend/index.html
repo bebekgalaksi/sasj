@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEALGRAPH // Relationship Path Finder (KasirNusa)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              800: '#1E40AF',
+              900: '#1E3A8A',
+              950: '#0F2356'
+            },
+            slate: {
+              850: '#151E2E',
+              900: '#0F172A',
+              950: '#0B0F19'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"Space Grotesk"', 'monospace']
+          },
+          boxShadow: {
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
+            'card-hover': '0 20px 30px -10px rgba(37, 99, 235, 0.12), 0 8px 16px -4px rgba(15, 23, 42, 0.04)',
+            'glow-blue': '0 0 50px -10px rgba(37, 99, 235, 0.45)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #FFFFFF;
+      color: #0F172A;
+      overflow-x: hidden;
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background-color: #EFF6FF;
+      border: 1px solid #DBEAFE;
+      color: #2563EB;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 99px;
+    }
+    #vis-container {
+      width: 100%;
+      height: 500px;
+      background: #F8FAFC;
+      border-radius: 1.25rem;
+      border: 1px solid #E2E8F0;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased text-slate-900 bg-white">
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform -translate-y-16 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700">
+    <div class="w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping"></div>
+    <span id="toast-text" class="text-xs font-medium font-sans">Draft email copied to clipboard!</span>
+  </div>
+
+  <!-- Header Navigation -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16.5A1.5 1.5 0 018.5 15h7a1.5 1.5 0 011.5 1.5V18h-10v-1.5z" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-xl tracking-tight text-slate-900">DEALGRAPH<span class="text-blue-600">.</span></span>
+          <span class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Relationship Path Finder</span>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+        <a href="#pathfinder" class="hover:text-blue-600 transition-colors">Path Finder Console</a>
+        <a href="#graph-view" class="hover:text-blue-600 transition-colors">Interactive Calculator & Canvas</a>
+        <a href="#parameter-analysis" class="hover:text-blue-600 transition-colors">Parameter & Data Analysis</a>
+        <a href="#api-tester" class="hover:text-blue-600 transition-colors">REST API Docs</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <span class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Backend REST API Live
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-10 pb-16 overflow-hidden bg-slate-50/50 border-b border-slate-100">
+    <div class="max-w-5xl mx-auto px-4 text-center">
+      <div class="pill-badge uppercase tracking-widest mb-3">
+        TIM 3 — SALES TRACK • PT KASIRNUSA TEKNOLOGI
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
+        Relationship <span class="text-blue-600">Path Finder</span> Engine
+      </h1>
+      <p class="mt-4 text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+        Solusi berbasis graf untuk menemukan <strong>jalur koneksi terpendek dan terkuat</strong> menuju <em>Decision Maker</em> prospek <strong>P01 (Grup Ritel Mandala)</strong> dan <strong>P04 (Nirwana Hotel & Resto)</strong> beserta <strong>draft pesan intro kontekstual</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Workspace -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <!-- Section 1: Path Finder Interactive Console -->
+    <section id="pathfinder" class="scroll-mt-24 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">1. Interactive Path Finder Console</h2>
+          <p class="text-sm text-slate-500">Pilih prospek target untuk menghitung jalur koneksi terbaik dan menghasilkan draft email intro secara otomatis via API backend Python.</p>
+        </div>
+        <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl">
+          <button id="btn-p01" onclick="loadPathFinder('P01')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-md">
+            P01: Grup Ritel Mandala (Rp 252M)
+          </button>
+          <button id="btn-p04" onclick="loadPathFinder('P04')" class="px-4 py-2 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-blue-600">
+            P04: Nirwana Hotel & Resto (Rp 147M)
+          </button>
+        </div>
+      </div>
+
+      <!-- Comparative Results Container -->
+      <div id="pathfinder-results" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-3 p-12 text-center text-slate-400">
+          <div class="inline-block animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mb-3"></div>
+          <p class="text-sm font-medium">Memuat data jalur terbaik dari Backend REST API...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Dynamic Context Graph Canvas (Interactive Calculator) -->
+    <section id="graph-view" class="scroll-mt-24 space-y-6">
+      <div class="border-b border-slate-200 pb-4">
+        <h2 class="text-2xl font-bold text-slate-900">2. Dynamic Relationship Calculator & Context Graph Canvas</h2>
+        <p class="text-sm text-slate-500">Kalkulator interaktif: Pilih tipe relasi (Company to Company / People to Company / Company to People), lalu pilih entitas asal & tujuan untuk menghitung nilai terbaik dan memperlihatkannya di Canvas.</p>
+      </div>
+
+      <!-- Calculator Control Panel Bar -->
+      <div class="bg-slate-900 text-white rounded-2xl p-5 shadow-xl border border-slate-800 space-y-4">
+        <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+          <span class="text-blue-400 font-bold text-sm">🧮 Calculator Mode Selector</span>
+          <span class="text-xs text-slate-400">| Hitung bobot & tentukan mana pilihan nilai terbaik secara dinamis</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+          <!-- Step 1: Select Mode -->
+          <div class="space-y-1">
+            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">1. Pilih Tipe Relasi:</label>
+            <select id="calc-mode" onchange="onCalcModeChange()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-medium focus:outline-none focus:border-blue-500">
+              <option value="company_to_company">🏢↔️🏢 Company to Company</option>
+              <option value="people_to_company">👤↔️🏢 People to Company</option>
+              <option value="company_to_people">🏢↔️👤 Company to People</option>
+            </select>
+          </div>
+
+          <!-- Step 2: Select Source Entity -->
+          <div class="space-y-1">
+            <label id="lbl-calc-source" class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">2. Entitas Asal (From):</label>
+            <select id="calc-source" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-medium focus:outline-none focus:border-blue-500">
+              <!-- Populated dynamically via API -->
+            </select>
+          </div>
+
+          <!-- Step 3: Select Target Entity -->
+          <div class="space-y-1">
+            <label id="lbl-calc-target" class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">3. Entitas Tujuan (To):</label>
+            <select id="calc-target" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white font-medium focus:outline-none focus:border-blue-500">
+              <!-- Populated dynamically via API -->
+            </select>
+          </div>
+
+          <!-- Action Button -->
+          <div>
+            <button onclick="runCalculatorQuery()" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition-all active:scale-95 flex items-center justify-center gap-1.5">
+              <span>⚡ Hitung & Sorot di Canvas</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Graph Canvas & Calculation Output Split View -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Vis Network Container (Left 2 Cols) -->
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <span class="font-bold text-slate-800">Node Legend:</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> KasirNusa</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span> DM</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Prospek</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Ex-Org</span>
+          </div>
+          <div id="vis-container"></div>
+        </div>
+
+        <!-- Mode Calculation & Explanation Card (Right Col) -->
+        <div id="calculator-output-card" class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5 flex flex-col justify-between">
+          <div class="p-8 text-center text-slate-400">
+            <div class="animate-pulse font-medium text-xs">Pilih kombinasi di kalkulator lalu klik Hitung...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Data Parameter & Exclusion Analysis -->
+    <section id="parameter-analysis" class="scroll-mt-24 space-y-6">
+      <div class="border-b border-slate-200 pb-4">
+        <h2 class="text-2xl font-bold text-slate-900">3. Parameter & Data Analysis (Tim 3 Focus)</h2>
+        <p class="text-sm text-slate-500">Mengapa dataset tertentu digunakan dan mengapa data bug/support tickets **dieliminasi dari perhitungan** agar tidak merusak akurasi pathfinding.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="parameter-details-container">
+        <!-- Loaded via API -->
+      </div>
+    </section>
+
+    <!-- Section 4: Live REST API Tester -->
+    <section id="api-tester" class="scroll-mt-24 space-y-4">
+      <div class="border-b border-slate-200 pb-4">
+        <h2 class="text-2xl font-bold text-slate-900">4. Live REST API Console</h2>
+        <p class="text-sm text-slate-500">Uji langsung endpoint Python backend tanpa hardcoding frontend.</p>
+      </div>
+
+      <div class="bg-slate-900 rounded-2xl p-6 text-white space-y-4 shadow-xl border border-slate-800">
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="testApi('/api/custom-pathfinder?mode=company_to_company&source=C01&target=P01')" class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-mono font-bold">
+            GET /api/custom-pathfinder (C01->P01)
+          </button>
+          <button onclick="testApi('/api/custom-pathfinder?mode=people_to_company&source=E03&target=P01')" class="px-3.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs font-mono font-bold">
+            GET /api/custom-pathfinder (E03->P01)
+          </button>
+          <button onclick="testApi('/api/entities')" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-xs font-mono font-bold">
+            GET /api/entities
+          </button>
+        </div>
+
+        <pre id="api-response" class="bg-slate-950 p-4 rounded-xl text-xs font-mono text-emerald-400 overflow-x-auto max-h-80 border border-slate-800 custom-scroll">// Klik tombol di atas untuk menguji REST API backend secara live...</pre>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-8 text-xs text-center">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>© 2026 PT KasirNusa Teknologi — Tim 3 Relationship Path Finder Engine.</p>
+      <p class="mt-1 text-slate-500">Built cleanly with Python REST API Backend + Vis.js + Base Design Tokens.</p>
+    </div>
+  </footer>
+
+  <script src="js/graph-vis.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
