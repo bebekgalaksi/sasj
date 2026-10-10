@@ -23,6 +23,20 @@ def load_env_file(base_dir):
                     env_vars[k.strip()] = v.strip().strip("'").strip('"')
     return env_vars
 
+def format_relation_title(rel_type: str) -> str:
+    mapping = {
+        "KEY_CLIENT_CHAMPION": "Key Client Champion",
+        "ALUMNI_EX_COLLEAGUE": "Alumni & Ex-Colleague",
+        "DIRECT_REPORT": "Direct Report",
+        "COLD_ACQUAINTANCE": "Cold Acquaintance",
+        "TECHNICAL_GATEKEEPER": "Technical Gatekeeper",
+        "COMMUNICATION": "Direct Communication",
+        "ALUMNI": "Alumni Colleague",
+        "WORKS_AT": "Active Employee",
+        "MANAGES": "Account Manager"
+    }
+    return mapping.get(rel_type, rel_type.replace("_", " ").title())
+
 class DynamicGraphEngine:
     def __init__(self, base_dir=None):
         if base_dir is None:
@@ -62,14 +76,21 @@ class DynamicGraphEngine:
             or os.environ.get("TYPESAFE_API_KEY")
         )
 
-    def evaluate_edge_dynamic(self, source_id: str, target_id: str, fallback_weight: float = 8.0) -> dict:
+    def evaluate_edge_dynamic(self, source_id: str, target_id: str, fallback_weight: float = 8.0, use_cloud: bool = False) -> dict:
         pair_key = f"{source_id}->{target_id}"
         if pair_key in self.edge_eval_cache:
-            return self.edge_eval_cache[pair_key]
+            cached = self.edge_eval_cache[pair_key]
+            if not use_cloud or cached.get("cloud_evaluated"):
+                return cached
 
         rag_ctx = self.retriever.retrieve_context(source_id, target_id)
-        self.jev_evaluator.api_key = self.get_jev_api_key()
-        eval_res = self.jev_evaluator.evaluate(rag_ctx)
+        if use_cloud and self.get_jev_api_key():
+            self.jev_evaluator.api_key = self.get_jev_api_key()
+            eval_res = self.jev_evaluator.evaluate(rag_ctx)
+            eval_res["cloud_evaluated"] = True
+        else:
+            eval_res = self.jev_evaluator._deterministic_rag_evaluation(rag_ctx)
+            eval_res["cloud_evaluated"] = False
         
         self.edge_eval_cache[pair_key] = eval_res
         return eval_res
@@ -318,7 +339,7 @@ class DynamicGraphEngine:
             role = n.get("role", "")
             
             if n["type"] in ["prospect", "customer", "org"] or n_id == "KASIRNUSA":
-                tipe_str = "Vendor / Utama" if n_id == "KASIRNUSA" else ("Prospek" if n["type"] == "prospect" else ("Pelanggan" if n["type"] == "customer" else "Organisasi"))
+                tipe_str = "Vendor / Primary" if n_id == "KASIRNUSA" else ("Prospect" if n["type"] == "prospect" else ("Customer" if n["type"] == "customer" else "Organization"))
                 companies.append({
                     "id": n_id,
                     "label": f"{name} ({tipe_str})",
@@ -341,45 +362,6 @@ class DynamicGraphEngine:
             "persons": sorted_persons
         }
 
-    def call_gemini_api(self, prompt, api_key):
-        if not api_key:
-            return None
-        
-        models_to_try = [
-            "gemini-2.5-flash",
-            "gemini-1.5-flash",
-            "gemini-pro"
-        ]
-        
-        payload = {
-            "contents": [
-                {
-                    "parts": [
-                        {"text": prompt}
-                    ]
-                }
-            ]
-        }
-        
-        for model in models_to_try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
-            try:
-                with urllib.request.urlopen(req, timeout=8) as resp:
-                    res_data = json.loads(resp.read().decode("utf-8"))
-                    text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-                    if text:
-                        return text.strip()
-            except Exception as e:
-                continue
-                
-        return None
-
     def solve_custom_path(self, mode, source_id, target_id):
         source_node = self.nodes.get(source_id)
         target_node = self.nodes.get(target_id)
@@ -393,23 +375,21 @@ class DynamicGraphEngine:
         # Multi-dataset evidence lookup
         evidence_summary = ""
         if (source_id in ["C01", "KASIRNUSA", "E03"] and target_id in ["P01", "K017"]) or (source_id in ["P01", "K017"] and target_id in ["C01", "KASIRNUSA", "E03"]):
-            score = 9.5 if mode == "company_to_company" else (9.2 if mode == "people_to_company" else 9.0)
-            evidence_summary = f"Rina Hapsari (K017) pernah 5 tahun menjabat Head of Operations di C01 Kopi Lintas (contact_employment_history.csv), berinteraksi 13+ kali dengan AM Sari Puspita (interactions.jsonl), dan kini menjabat GM Operations P01 dengan wewenang pengadaan kasir (crm_contacts.csv & I0343), didukung preseden diskon volume 15% (decision_log.csv D-2025-11)."
+            evidence_summary = f"Rina Hapsari (K017) served 5 years as Head of Operations at C01 Kopi Lintas (contact_employment_history.csv), interacted 13+ times with AM Sari Puspita (interactions.jsonl), and is now GM Operations at P01 with POS procurement authority (crm_contacts.csv & I0343), supported by a 15% volume discount precedent (decision_log.csv D-2025-11)."
             path_nodes = ["C01", "K017", "P01"] if mode == "company_to_company" else ["E03", "K017", "K089"]
-            path_labels = ["Kopi Lintas Nusantara (C01)", "Rina Hapsari (GM Operations P01)", "Grup Ritel Mandala (P01)"] if mode == "company_to_company" else ["Sari Puspita (AM KasirNusa)", "Rina Hapsari (GM Operations)", "Steven Wijaya (Dirut P01)"]
+            path_labels = ["Kopi Lintas Nusantara (C01)", "Rina Hapsari (GM Operations P01)", "Mandala Retail Group (P01)"] if mode == "company_to_company" else ["Sari Puspita (KasirNusa AM)", "Rina Hapsari (GM Operations)", "Steven Wijaya (CEO P01)"]
             edges_exp = [
-                {"from": "Kopi Lintas Nusantara (C01)", "to": "Rina Hapsari (K017)", "reason": "Head of Operations C01 (2021-Agu 2026)", "weight": 10},
-                {"from": "Rina Hapsari (K017)", "to": "Grup Ritel Mandala (P01)", "reason": "GM Operations P01 per 1 Sep 2026 (Wewenang Komersial)", "weight": 9}
+                {"from": "Kopi Lintas Nusantara (C01)", "to": "Rina Hapsari (K017)", "reason": "Head of Operations C01 (2021-Aug 2026)", "weight": 10},
+                {"from": "Rina Hapsari (K017)", "to": "Mandala Retail Group (P01)", "reason": "GM Operations P01 per Sep 1, 2026 (Commercial Authority)", "weight": 9}
             ]
 
         elif (source_id in ["C06", "KASIRNUSA", "E04", "K116"] and target_id in ["P04", "K028"]) or (source_id in ["P04", "K028"] and target_id in ["C06", "KASIRNUSA", "E04", "K116"]):
-            score = 8.8 if mode == "company_to_company" else (8.5 if mode == "people_to_company" else 8.7)
-            evidence_summary = f"Budi Santoso (CFO C06) dan Hartono Gunawan (Dirut P04) pernah bekerja selevel selama 5 tahun di PT Sentosa Abadi Group (2015-2019, contact_employment_history.csv). Dirut P04 secara eksplisit meminta rekomendasi sesama pengusaha (I0335), dan C06 memiliki NPS 9 (crm_accounts.csv)."
+            evidence_summary = f"Budi Santoso (CFO C06) and Hartono Gunawan (CEO P04) worked together as peer executives for 5 years at PT Sentosa Abadi Group (2015-2019, contact_employment_history.csv). CEO P04 explicitly requested peer business recommendations (I0335), and C06 holds an NPS of 9 (crm_accounts.csv)."
             path_nodes = ["C06", "K116", "ORG_PT_Sentosa_Abadi_Group", "K028", "P04"]
-            path_labels = ["Saiyo Group (C06)", "Budi Santoso (CFO C06)", "PT Sentosa Abadi Group (Alumni 5 Thn)", "Hartono Gunawan (Dirut P04)", "Nirwana Hotel & Resto (P04)"]
+            path_labels = ["Saiyo Group (C06)", "Budi Santoso (CFO C06)", "PT Sentosa Abadi Group (5-Yr Alumni)", "Hartono Gunawan (CEO P04)", "Nirwana Hotel & Resto (P04)"]
             edges_exp = [
-                {"from": "Saiyo Group (C06)", "to": "Budi Santoso (K116)", "reason": "CFO Saiyo Group (NPS 9, Ekspansi 10 cabang I0300)", "weight": 9},
-                {"from": "Budi Santoso (K116)", "to": "Hartono Gunawan (K028)", "reason": "Mantan Kolega Selevel 5 Tahun di PT Sentosa Abadi Group (2015-2019)", "weight": 10}
+                {"from": "Saiyo Group (C06)", "to": "Budi Santoso (K116)", "reason": "CFO of Saiyo Group (NPS 9, 10-branch expansion I0300)", "weight": 9},
+                {"from": "Budi Santoso (K116)", "to": "Hartono Gunawan (K028)", "reason": "Former Peer Colleague for 5 Years at PT Sentosa Abadi Group (2015-2019)", "weight": 10}
             ]
 
         else:
@@ -429,60 +409,98 @@ class DynamicGraphEngine:
                         queue.append((neighbor, path + [neighbor], total_weight + weight, edge_labels + [(curr, neighbor, label, weight)]))
 
             if not found_paths:
-                score = 5.2
                 path_nodes = [source_id, target_id]
                 path_labels = [s_name, t_name]
                 edges_exp = []
-                evidence_summary = f"Tidak ada bukti riwayat karir bersama atau interaksi CRM langsung di dataset clean antara {s_name} dan {t_name}."
+                evidence_summary = f"No joint career history or direct CRM correspondence found between {s_name} and {t_name}."
             else:
                 best_p, best_w, best_edges = found_paths[0]
                 hop_count = len(best_p) - 1
-                avg_weight = best_w / max(1, hop_count)
-                score = round(min(10.0, max(5.0, avg_weight * 0.85 + (2.5 / hop_count))), 1)
                 path_nodes = best_p
                 path_labels = [self.nodes[nid].get("name", nid) for nid in best_p]
                 edges_exp = [{"from": self.nodes[e[0]].get("name", e[0]), "to": self.nodes[e[1]].get("name", e[1]), "reason": e[2], "weight": e[3]} for e in best_edges]
-                evidence_summary = f"Terhubung dalam {hop_count} langkah melalui " + ", ".join([e[2] for e in best_edges]) + "."
+                evidence_summary = f"Connected in {hop_count} hops via " + ", ".join([e[2] for e in best_edges]) + "."
 
-        is_best_match = score >= 8.5
+        # TYPE-SAFE AI (JEV SYSTEM ONE) EVALUATION ALGORITHM
+        jev_res = self.evaluate_edge_dynamic(source_id, target_id, use_cloud=True)
+        
+        jev_weight = jev_res.get("weight", 5.0)
+        jev_rel_type = jev_res.get("relation_type", "COMMUNICATION")
+        is_trusted = jev_res.get("is_trusted_advocate", True)
+        confidence = jev_res.get("confidence", 0.90)
+        jev_model = jev_res.get("model", "jev-1.13.0")
 
-        # Check for Gemini API key dynamically from .env
-        api_key = self.get_api_key()
-        gemini_explanation = None
-        if api_key:
-            prompt = f"""
-Anda adalah AI Analyst untuk Sales & Customer Success di PT KasirNusa Teknologi.
-Tugas Anda adalah menjelaskan hasil perhitungan grafik hubungan untuk Sales Relationship Path Finder dalam Bahasa Indonesia yang profesional, alami, dan meyakinkan.
+        final_score = round(float(jev_weight), 1)
+        is_best_match = final_score >= 8.5
+        formal_rel_type = format_relation_title(jev_rel_type)
 
-Data Input:
-- Mode Relasi: {mode}
-- Entitas Asal: {s_name}
-- Entitas Tujuan: {t_name}
-- Calculated Score: {score} / 10
-- Bukti Dataset: {evidence_summary}
-- Jalur Koneksi: {" -> ".join(path_labels)}
+        if (source_id in ["C01", "KASIRNUSA", "E03"] and target_id in ["P01", "K017"]) or (source_id in ["P01", "K017"] and target_id in ["C01", "KASIRNUSA", "E03"]):
+            formal_rel_type = "Key Client Champion"
+            why_score = (
+                "This path bridges Kopi Lintas Nusantara to Mandala Retail Group through Rina Hapsari. "
+                "Rina previously served as Head of Operations at Kopi Lintas for 5 years and maintained an outstanding working relationship with KasirNusa. "
+                "As of September 1, 2026, Rina officially took office as GM Operations at Mandala, holding full commercial authority over new POS procurement for 60 outlets. "
+                "Having firsthand experience with KasirNusa's reliability across 42 outlets, Rina is the most strategic champion decision-maker."
+            )
+            explanation = (
+                "This route is the Primary Recommended Route (Golden Path). "
+                "Bypass technical gatekeepers (IT) and focus outreach directly on Rina Hapsari. "
+                "Have Account Manager Sari Puspita send a warm congratulatory note on her new role, "
+                "then introduce the 15% volume discount structure proven at Kopi Lintas to accelerate deal closing."
+            )
 
-Tuliskan penjelasan singkat (2-3 kalimat) dalam Bahasa Indonesia yang menjelaskan mengapa skornya {score}/10, bukti empiris dari dataset yang mendasarinya, dan saran rekomendasi praktis untuk tim Sales. Jangan gunakan format markdown rumit, buat kalimat mengalir alami.
-"""
-            gemini_explanation = self.call_gemini_api(prompt, api_key)
+        elif (source_id in ["C06", "KASIRNUSA", "E04", "K116"] and target_id in ["P04", "K028"]) or (source_id in ["P04", "K028"] and target_id in ["C06", "KASIRNUSA", "E04", "K116"]):
+            formal_rel_type = "Alumni & Ex-Colleague"
+            why_score = (
+                "This path connects Saiyo Group to Nirwana Hotel & Resto via a 5-year executive alumni link between Budi Santoso (CFO Saiyo) and Hartono Gunawan (CEO Nirwana) at PT Sentosa Abadi Group (2015–2019). "
+                "CEO Nirwana explicitly requires a firsthand testimonial from a fellow business owner before approving a new POS vendor. "
+                "Budi Santoso is highly satisfied with KasirNusa (NPS 9) and is currently preparing a 10-branch expansion."
+            )
+            explanation = (
+                "This route is the Primary Recommended Route (Golden Path). "
+                "Facilitate a direct peer-to-peer endorsement from Budi Santoso to Hartono Gunawan validating KasirNusa's enterprise stability. "
+                "This credible alumni endorsement will overcome executive hesitation and secure the 35-outlet contract valued at Rp 147M."
+            )
 
-        why_score = gemini_explanation if gemini_explanation else (
-            f"Skor {score}/10 dihitung dari sintesis dataset: {evidence_summary}"
-        )
+        elif not found_paths:
+            why_score = (
+                f"No active partnership history, joint career overlap, or CRM correspondence was found between {s_name} and {t_name}. "
+                f"This relationship is classified as '{formal_rel_type}' with a base relational score of {final_score}/10."
+            )
+            explanation = (
+                f"This path represents cold outreach. It is recommended to first establish a warm introduction "
+                f"through existing customer accounts before submitting a direct proposal."
+            )
+
+        else:
+            hop_count = len(path_nodes) - 1
+            connector_names = ' ➔ '.join(path_labels)
+            why_score = (
+                f"Both entities are connected in a {hop_count}-hop sequence via intermediaries: {connector_names}. "
+                f"This relationship is evaluated as '{formal_rel_type}' with {int(confidence*100)}% confidence and a relational score of {final_score}/10."
+            )
+            explanation = (
+                f"This path can serve as an alternative connection route. "
+                f"Engage the nearest intermediary contact ({path_labels[1] if len(path_labels) > 1 else ''}) to establish an official, credible introduction."
+            )
 
         return {
             "mode": mode,
             "source": {"id": source_id, "name": s_name},
             "target": {"id": target_id, "name": t_name},
-            "score": score,
+            "score": final_score,
             "is_best_match": is_best_match,
             "path_nodes": path_nodes,
             "path_labels": path_labels,
-            "calculation": f"Score = (BobotBuktiDataset: {score - 1.0:.1f}) + (PrecedentBonus: 1.0) = {score} / 10",
+            "calculation": f"Model: {jev_model} | Weight: {final_score}/10 | Category: {formal_rel_type} (Confidence: {int(confidence*100)}%) | Status: {'Verified Champion' if is_trusted else 'Standard Contact'}",
             "why_score": why_score,
-            "explanation": f"Jalur hubungan dari {s_name} menuju {t_name} memiliki tingkat keandalan {score}/10." + (" Ini adalah jalur emas terbaik yang direkomendasikan!" if is_best_match else " Jalur ini dapat digunakan sebagai alternatif sekunder."),
+            "explanation": explanation,
             "edges_explained": edges_exp,
-            "gemini_powered": bool(gemini_explanation)
+            "jev_powered": True,
+            "jev_model": jev_model,
+            "jev_relation_type": formal_rel_type,
+            "is_trusted_advocate": is_trusted,
+            "confidence": confidence
         }
 
     def solve_relationship_path(self, prospect_id):
@@ -513,13 +531,6 @@ Tuliskan penjelasan singkat (2-3 kalimat) dalam Bahasa Indonesia yang menjelaska
                         "subject": "Congratulations on the new role at Mandala Retail Group & POS System Partnership",
                         "body": "Hi Rina,\n\nCongratulations on your new role as GM Operations at Mandala Retail Group! Given our excellent collaboration while you led operations at Kopi Lintas Nusantara (C01) for 42 outlets, our team (Bagus Prakoso, Sales Rep) is currently discussing the modernization of Mandala's 60 outlets with Fajar.\n\nWe'd like to invite you for a brief chat to tailor the best retail solution, including a 15% volume discount structure (as per precedent D-2025-11 for 40+ outlets). Sari Puspita (AM C01) also sends her warmest regards.\n\nBest regards,\nBagus Prakoso & Sari Puspita\nPT KasirNusa Teknologi"
                     }
-                },
-                "alternative_path": {
-                    "title": "Technical Evaluator Path (Bagus SE ➔ Fajar IT Mgr - Bottleneck)",
-                    "path_nodes": ["E06", "K052", "K089"],
-                    "path_labels": ["Bagus Prakoso (Sales Exec)", "Fajar Nugraha (IT Mgr P01)", "Steven Wijaya (CEO P01)"],
-                    "score": 6.5,
-                    "bottleneck_reason": "Deal stalled for 20 days in the Proposal stage because Fajar is only a technical evaluator without commercial budget authority (I0343)."
                 }
             }
         else:
@@ -546,31 +557,30 @@ Tuliskan penjelasan singkat (2-3 kalimat) dalam Bahasa Indonesia yang menjelaska
                         "subject": "Request for KasirNusa Experience Recommendation for Mr. Hartono Gunawan (Nirwana Group)",
                         "body": "Good afternoon Mr. Budi Santoso,\n\nI hope you and the Saiyo Group team are doing great. Thank you for your trust in operating Saiyo Group's 30 branches with KasirNusa.\n\nOur team is currently in discussions with Nirwana Hotel & Resto, led by Mr. Hartono Gunawan—your former colleague at PT Sentosa Abadi Group. Since Mr. Hartono needs a direct testimonial from a fellow business leader regarding our system's reliability, would you be open to providing a brief word of reference to him?\n\nWarm regards,\nWahyu Nugroho & Bagus Prakoso\nPT KasirNusa Teknologi"
                     }
-                },
-                "alternative_path": {
-                    "title": "Standard Purchasing Path (Bagus SE ➔ Yuli Purchasing - Bottleneck)",
-                    "path_nodes": ["E06", "K065", "K028"],
-                    "path_labels": ["Bagus Prakoso (Sales Exec)", "Yuli Astuti (Purchasing P04)", "Hartono Gunawan (CEO P04)"],
-                    "score": 5.0,
-                    "bottleneck_reason": "Deal stalled for 30 days in the Negotiation stage because Yuli cannot bypass the CEO without a peer reference from a fellow executive (I0335)."
                 }
             }
 
-    def get_full_graph_payload(self):
-        # Filter for a clean, targeted enterprise graph (KasirNusa + P01 + P04 paths)
-        allowed_nodes = {
-            "KASIRNUSA", "P01", "P04", "C01", "C06",
-            "E03", "E06", "E04",
-            "K017", "K089", "K052", 
-            "K116", "K028", "K065"
-        }
+    def get_full_graph_payload(self, filter_prospect=None):
+        if filter_prospect == "P01":
+            allowed_nodes = {"KASIRNUSA", "P01", "C01", "E03", "E06", "K017", "K089", "K052"}
+        elif filter_prospect == "P04":
+            allowed_nodes = {"KASIRNUSA", "P04", "C06", "E04", "E06", "K116", "K028", "K065"}
+        else:
+            # Full ecosystem view (KasirNusa + P01 + P04 paths)
+            allowed_nodes = {
+                "KASIRNUSA", "P01", "P04", "C01", "C06",
+                "E03", "E06", "E04",
+                "K017", "K089", "K052", 
+                "K116", "K028", "K065"
+            }
         
         filtered_nodes = [n for n in self.nodes.values() if n["id"] in allowed_nodes]
         filtered_edges = [e for e in self.edges if e["from"] in allowed_nodes and e["to"] in allowed_nodes]
         
         return {
             "nodes": filtered_nodes,
-            "edges": filtered_edges
+            "edges": filtered_edges,
+            "filter": filter_prospect or "ALL"
         }
 
 if __name__ == "__main__":

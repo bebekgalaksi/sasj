@@ -27,7 +27,7 @@ function showToast(message) {
 // Copy to clipboard helper
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-        showToast('Draft email berhasil disalin ke clipboard!');
+        showToast('Outreach email draft copied to clipboard!');
     }).catch(err => {
         console.error('Failed to copy text: ', err);
     });
@@ -61,8 +61,8 @@ function onCalcModeChange() {
     targetSelect.innerHTML = '';
 
     if (mode === 'company_to_company') {
-        if (lblSource) lblSource.textContent = "2. Perusahaan Asal (From Company):";
-        if (lblTarget) lblTarget.textContent = "3. Perusahaan Tujuan (To Company):";
+        if (lblSource) lblSource.textContent = "2. Source Company:";
+        if (lblTarget) lblTarget.textContent = "3. Target Company:";
 
         cachedEntities.companies.forEach(c => {
             sourceSelect.add(new Option(c.label, c.id, false, c.id === 'C01'));
@@ -70,8 +70,8 @@ function onCalcModeChange() {
         });
 
     } else if (mode === 'people_to_company') {
-        if (lblSource) lblSource.textContent = "2. Orang Asal (From Person):";
-        if (lblTarget) lblTarget.textContent = "3. Perusahaan Tujuan (To Company):";
+        if (lblSource) lblSource.textContent = "2. Source Person:";
+        if (lblTarget) lblTarget.textContent = "3. Target Company:";
 
         cachedEntities.persons.forEach(p => {
             sourceSelect.add(new Option(p.label, p.id, false, p.id === 'E03'));
@@ -81,8 +81,8 @@ function onCalcModeChange() {
         });
 
     } else { // company_to_people
-        if (lblSource) lblSource.textContent = "2. Perusahaan Asal (From Company):";
-        if (lblTarget) lblTarget.textContent = "3. Orang Tujuan (To Person):";
+        if (lblSource) lblSource.textContent = "2. Source Company:";
+        if (lblTarget) lblTarget.textContent = "3. Target Person:";
 
         cachedEntities.companies.forEach(c => {
             sourceSelect.add(new Option(c.label, c.id, false, c.id === 'C01'));
@@ -109,7 +109,7 @@ async function runCalculatorQuery() {
     cardContainer.innerHTML = `
         <div class="p-8 text-center text-slate-400">
             <div class="inline-block animate-spin w-6 h-6 border-3 border-blue-600 border-t-transparent rounded-full mb-2"></div>
-            <p class="text-xs font-medium">Menghitung jalur & bobot relasi via Python Backend...</p>
+            <p class="text-xs font-medium">Analyzing connection path and relationship weights...</p>
         </div>
     `;
 
@@ -123,61 +123,112 @@ async function runCalculatorQuery() {
         }
 
         const isBestMatch = data.is_best_match;
-        const geminiPowered = data.gemini_powered;
+        const jevModel = data.jev_model || 'jev-1.13.0';
+        
+        function formatRelation(rel) {
+            if (!rel) return 'Key Client Champion';
+            const m = {
+                'KEY_CLIENT_CHAMPION': 'Key Client Champion',
+                'ALUMNI_EX_COLLEAGUE': 'Alumni & Ex-Colleague',
+                'DIRECT_REPORT': 'Direct Report',
+                'COLD_ACQUAINTANCE': 'Cold Acquaintance',
+                'TECHNICAL_GATEKEEPER': 'Technical Gatekeeper',
+                'COMMUNICATION': 'Direct Communication'
+            };
+            return m[rel] || rel.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        const jevRelFormatted = formatRelation(data.jev_relation_type);
+        const isTrusted = data.is_trusted_advocate;
 
         cardContainer.innerHTML = `
             <div class="space-y-4">
-                <!-- Header Score & Best Match Status -->
+                <!-- Header Score & Match Status -->
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Hasil Kalkulasi Graf</span>
-                        ${geminiPowered ? '<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-extrabold text-[9px] shadow-sm">✨ Gemini AI</span>' : ''}
-                    </div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">Relationship Calculation Result</span>
                     <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full ${isBestMatch ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'} font-extrabold text-[10px]">
-                            ${isBestMatch ? '🏆 #1 Best Match (Golden Path)' : 'ℹ️ Alternative Path'}
+                        <span class="px-2.5 py-0.5 rounded-full ${isBestMatch ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'} font-bold text-[11px]">
+                            ${isBestMatch ? 'Primary Path (Golden Path)' : 'Alternative Path'}
                         </span>
-                        <span class="px-3 py-1 rounded-full bg-blue-600 text-white font-extrabold text-xs shadow">
+                        <span class="px-3 py-1 rounded-full bg-blue-600 text-white font-extrabold text-xs shadow-xs">
                             ${data.score} / 10
                         </span>
+                    </div>
+                </div>
+
+                <!-- Jev System One Metrics Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Engine Model</div>
+                        <div class="text-xs font-bold text-slate-800 font-mono mt-0.5">${jevModel}</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Relationship Category</div>
+                        <div class="text-xs font-bold text-indigo-700 font-sans mt-0.5">${jevRelFormatted}</div>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Advocate Status</div>
+                        <div class="text-xs font-bold ${isTrusted ? 'text-emerald-700' : 'text-slate-600'} mt-0.5">
+                            ${isTrusted ? 'Verified Champion' : 'Standard Contact'}
+                        </div>
                     </div>
                 </div>
 
                 <!-- Breadcrumb Path -->
                 ${data.path_labels && data.path_labels.length > 0 ? `
                     <div class="space-y-1">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">🔗 Urutan Langkah Jalur:</span>
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Connection Path Sequence:</span>
                         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-800 leading-relaxed">
                             ${data.path_labels.join(' ➔ ')}
                         </div>
                     </div>
                 ` : ''}
 
+                <!-- Edge Breakdown -->
+                ${data.edges_explained && data.edges_explained.length > 0 ? `
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Step-by-Step Relationship Breakdown:</span>
+                        <div class="space-y-1.5">
+                            ${data.edges_explained.map(e => `
+                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-800">${e.from} ➔ ${e.to}</span>
+                                        <span class="text-slate-500 text-[11px]">(${e.reason})</span>
+                                    </div>
+                                    <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-[10px] shrink-0 border border-slate-200">
+                                        Weight: ${e.weight}/10
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
                 <!-- Formula / Calculation -->
                 <div class="space-y-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">📐 Perhitungan Formula:</span>
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Jev System One Evaluation Metrics:</span>
                     <div class="p-3 rounded-xl bg-slate-900 text-emerald-400 font-mono text-xs overflow-x-auto border border-slate-800">
                         ${data.calculation}
                     </div>
                 </div>
 
-                <!-- Mengapa Segitu -->
+                <!-- Analisis Hubungan Relasi -->
                 <div class="space-y-1">
                     <div class="flex items-center justify-between">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">💡 Mengapa Nilainya ${data.score}?</span>
-                        ${geminiPowered ? '<span class="text-[10px] text-purple-600 font-bold">Generative AI Summary</span>' : ''}
+                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Relationship Analysis (${data.score}/10):</span>
+                        <span class="text-[10px] text-slate-400 font-medium">Model: ${jevModel}</span>
                     </div>
-                    <p class="text-xs text-slate-700 leading-relaxed p-3 rounded-xl bg-blue-50/60 border border-blue-100">
+                    <div class="text-xs text-slate-700 leading-relaxed p-3.5 rounded-xl bg-slate-50 border border-slate-200 font-sans">
                         ${data.why_score}
-                    </p>
+                    </div>
                 </div>
 
-                <!-- Penjelasan & Perbandingan -->
+                <!-- Penjelasan & Rekomendasi -->
                 <div class="space-y-1">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">📝 Penjelasan & Perbandingan:</span>
-                    <p class="text-xs text-slate-600 leading-relaxed">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sales Strategy Recommendation:</span>
+                    <div class="text-xs text-slate-700 leading-relaxed p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 font-sans">
                         ${data.explanation}
-                    </p>
+                    </div>
                 </div>
             </div>
         `;
@@ -214,7 +265,7 @@ async function loadPathFinder(prospectId) {
     container.innerHTML = `
         <div class="lg:col-span-3 p-12 text-center text-slate-400">
           <div class="inline-block animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mb-3"></div>
-          <p class="text-sm font-medium">Menghitung jalur terbaik untuk ${prospectId} via Backend REST API...</p>
+          <p class="text-sm font-medium">Computing optimal relationship path for ${prospectId} via Backend REST API...</p>
         </div>
     `;
 
@@ -228,50 +279,50 @@ async function loadPathFinder(prospectId) {
         }
 
         const best = data.best_path;
-        const alt = data.alternative_path;
         const deal = data.deal;
 
         container.innerHTML = `
-            <!-- Left 2 Cols: Golden Path & Draft Email Card -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
                 <!-- Golden Path Card -->
-                <div class="bg-white rounded-2xl border-2 border-blue-600 p-6 shadow-xl space-y-5 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-extrabold uppercase px-4 py-1 rounded-bl-xl shadow-md">
-                        JALUR KONEKSI TERPERDEK & TERKUAT
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 font-extrabold text-sm flex items-center justify-center border border-blue-200">
-                            ${best.score}
+                <div class="bg-white rounded-2xl border-2 border-blue-600 p-6 shadow-xl space-y-5 relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <div class="absolute top-0 right-0 bg-blue-600 text-white text-[10px] font-extrabold uppercase px-4 py-1 rounded-bl-xl shadow-md">
+                            STRONGEST &amp; HIGHEST-WEIGHT GOLDEN PATH
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-900">${best.title}</h3>
-                            <p class="text-xs text-slate-500">Potentional Value: <strong class="text-blue-600">Rp ${intComma(deal.nilai_tahunan)} / th</strong> (60 outlet) · Stage: ${deal.stage}</p>
-                        </div>
-                    </div>
 
-                    <!-- Breadcrumbs Connection Sequence -->
-                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-                        ${best.path_labels.map((label, idx) => `
-                            <div class="flex items-center gap-2">
-                                <span class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 shadow-sm">${label}</span>
-                                ${idx < best.path_labels.length - 1 ? '<span class="text-blue-600 font-black">➔</span>' : ''}
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 font-extrabold text-sm flex items-center justify-center border border-blue-200">
+                                ${best.score}
                             </div>
-                        `).join('')}
-                    </div>
-
-                    <!-- Decision Maker Highlight -->
-                    <div class="p-4 rounded-xl bg-purple-50/70 border border-purple-200 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-purple-900 uppercase tracking-wider"> ${best.decision_maker.name}</span>
-                            <span class="px-2.5 py-0.5 rounded-full bg-purple-200 text-purple-800 font-extrabold text-[10px]">${best.decision_maker.title}</span>
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-900">${best.title}</h3>
+                                <p class="text-xs text-slate-500">Potential Contract Value: <strong class="text-blue-600">Rp ${intComma(deal.nilai_tahunan)} / yr</strong> (${deal.outlet || 60} outlets) · Stage: ${deal.stage}</p>
+                            </div>
                         </div>
-                        <p class="text-xs text-purple-950 leading-relaxed">${best.decision_maker.reason}</p>
+
+                        <!-- Breadcrumbs Connection Sequence -->
+                        <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            ${best.path_labels.map((label, idx) => `
+                                <div class="flex items-center gap-2">
+                                    <span class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 font-bold text-slate-800 shadow-sm">${label}</span>
+                                    ${idx < best.path_labels.length - 1 ? '<span class="text-blue-600 font-black">➔</span>' : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Decision Maker Highlight -->
+                        <div class="mt-4 p-4 rounded-xl bg-purple-50/70 border border-purple-200 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-purple-900 uppercase tracking-wider">${best.decision_maker.name}</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-purple-200 text-purple-800 font-extrabold text-[10px]">${best.decision_maker.title}</span>
+                            </div>
+                            <p class="text-xs text-purple-950 leading-relaxed">${best.decision_maker.reason}</p>
+                        </div>
                     </div>
 
                     <!-- Evidence & Edge Explanation -->
-                    <div class="space-y-2">
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Relational & Graph Weight:</h4>
+                    <div class="mt-4 space-y-2">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Relational &amp; Graph Weight:</h4>
                         <div class="space-y-2">
                             ${best.edges_explained.map(edge => `
                                 <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-start justify-between text-xs gap-3">
@@ -287,56 +338,42 @@ async function loadPathFinder(prospectId) {
                 </div>
 
                 <!-- Draft Intro Email Card -->
-                <div class="bg-slate-900 rounded-2xl p-6 text-white space-y-4 shadow-xl border border-slate-800">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                            <h4 class="text-sm font-bold tracking-tight">Introduction Message Text</h4>
+                <div class="bg-slate-900 rounded-2xl p-6 text-white space-y-4 shadow-xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                </svg>
+                                <h4 class="text-sm font-bold tracking-tight">Introduction Message Text</h4>
+                            </div>
+                            <button onclick="copyToClipboard(\`${escapeQuote(best.draft_email.body)}\`)" class="cursor-pointer px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition-all active:scale-95 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                Copy Email Text
+                            </button>
                         </div>
-                        <button onclick="copyToClipboard(\`${escapeQuote(best.draft_email.body)}\`)" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow transition-all active:scale-95 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                            Copy Email Text
-                        </button>
-                    </div>
 
-                    <div class="space-y-2 text-xs">
-                        <div class="flex items-center gap-2 text-slate-400">
-                            <span class="w-16 font-mono font-bold text-slate-500 uppercase">Kepada:</span>
-                            <span class="text-blue-300 font-mono">${best.draft_email.to}</span>
+                        <div class="space-y-2 text-xs mt-4">
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <span class="w-16 font-mono font-bold text-slate-500 uppercase">To:</span>
+                                <span class="text-blue-300 font-mono">${best.draft_email.to}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-400">
+                                <span class="w-16 font-mono font-bold text-slate-500 uppercase">Subject:</span>
+                                <span class="text-white font-bold">${best.draft_email.subject}</span>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2 text-slate-400">
-                            <span class="w-16 font-mono font-bold text-slate-500 uppercase">Subjek:</span>
-                            <span class="text-white font-bold">${best.draft_email.subject}</span>
+
+                        <div class="mt-4 p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-sans whitespace-pre-wrap leading-relaxed">
+                            ${best.draft_email.body}
                         </div>
                     </div>
 
-                    <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-sans whitespace-pre-wrap leading-relaxed">
-                        ${best.draft_email.body}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Col: Alternative / Bottleneck Path Card -->
-            <div class="space-y-6">
-                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 class="text-sm font-bold text-slate-900">Jalur Alternatif / Bottleneck</h3>
-                        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">Score: ${alt.score}/10</span>
-                    </div>
-
-                    <h4 class="text-xs font-bold text-slate-800">${alt.title}</h4>
-
-                    <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-slate-600">
-                        ${alt.path_labels.join(' ➔ ')}
-                    </div>
-
-                    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
-                        <span class="font-bold block uppercase tracking-wider text-[10px] text-amber-800">⚠️ Mengapa Jalur Ini Macet?</span>
-                        <p class="leading-relaxed">${alt.bottleneck_reason}</p>
+                    <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>Verified Outreach Context Ready to Send</span>
+                        <span class="text-emerald-400 font-semibold font-mono">100% Context Match</span>
                     </div>
                 </div>
             </div>
@@ -344,7 +381,7 @@ async function loadPathFinder(prospectId) {
 
     } catch (err) {
         console.error("Error loading pathfinder data:", err);
-        container.innerHTML = `<div class="lg:col-span-3 p-6 text-red-500 font-bold">Gagal terhubung ke Backend API Python. Pastikan backend server running di port 8081.</div>`;
+        container.innerHTML = `<div class="lg:col-span-3 p-6 text-red-500 font-bold">Failed to connect to Backend Python API. Please ensure server is running on port 8081.</div>`;
     }
 }
 
@@ -362,7 +399,7 @@ async function loadParameterAnalysis() {
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Dataset yang Digunakan
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Included Datasets
                     </h3>
                     <span class="text-xs text-slate-400 font-mono">7 Dataset Files</span>
                 </div>
@@ -381,7 +418,7 @@ async function loadParameterAnalysis() {
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Dataset yang Dieliminasi
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Excluded Datasets
                         </h3>
                         <span class="text-xs text-slate-400 font-mono">4 Dataset Files</span>
                     </div>
@@ -396,7 +433,7 @@ async function loadParameterAnalysis() {
                 </div>
 
                 <div class="bg-slate-900 text-white rounded-2xl p-6 shadow-xl border border-slate-800 space-y-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Formula Matematika Path Score</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-blue-400">Mathematical Formulation for Path Score</h3>
                     <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-400">
                         ${data.mathematical_formula.edge_weight}<br>
                         ${data.mathematical_formula.path_score}

@@ -47,7 +47,8 @@ class RESTRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response(graph_engine.get_entities())
 
         elif path == "/api/graph":
-            self.send_json_response(graph_engine.get_full_graph_payload())
+            filter_param = query.get("filter", query.get("prospect_id", [None]))[0]
+            self.send_json_response(graph_engine.get_full_graph_payload(filter_param))
 
         elif path == "/api/pathfinder":
             prospect_id = query.get("prospect_id", ["P01"])[0]
@@ -84,62 +85,62 @@ class RESTRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         elif path == "/api/parameter-analysis":
             analysis = {
-                "tim": "Tim 3 - Relationship Path Finder (Sales Track)",
-                "goal": "Lewat siapa jalur terbaik menuju decision maker? + Draft Pesan Intro",
+                "team": "Team 3 - Relationship Path Finder (Sales Track)",
+                "goal": "Identify the highest-confidence warm path to decision makers + Generate Contextual Intro Messages",
                 "included_datasets": [
                     {
                         "file": "crm_accounts.csv",
-                        "purpose": "Identifikasi entitas prospek (P01, P04) dan akun aktif (C01, C06)"
+                        "purpose": "Identify target prospect accounts (P01, P04) and active client accounts (C01, C06)"
                     },
                     {
                         "file": "crm_contacts.csv",
-                        "purpose": "Profil kontak, nama, email, nomor HP, dan posisi/jabatan resmi"
+                        "purpose": "Contact profiles, verified names, official titles, emails, and phone numbers"
                     },
                     {
                         "file": "contact_employment_history.csv",
-                        "purpose": "Mendeteksi perpindahan karir (ex-C01 to P01) dan alumni bersama di PT Sentosa Abadi Group"
+                        "purpose": "Detect career transitions (ex-C01 to P01) and alumni overlaps at PT Sentosa Abadi Group"
                     },
                     {
                         "file": "crm_deals.csv",
-                        "purpose": "Mengukur stage deal, nilai komersial annual, dan durasi bottleneck di stage"
+                        "purpose": "Measure deal stages, annual contract value, and bottleneck stalled duration"
                     },
                     {
                         "file": "employees.csv",
-                        "purpose": "Tim internal KasirNusa (Account Managers E03/E04 & Sales Executive E06)"
+                        "purpose": "Internal KasirNusa team roster (Account Managers E03/E04 & Sales Reps E06)"
                     },
                     {
                         "file": "interactions.jsonl",
-                        "purpose": "Sentimen interaksi, riwayat percakapan email, dan kedekatan hubungan (13+ interaksi)"
+                        "purpose": "Interaction sentiment, email correspondence history, and relationship depth (13+ interactions)"
                     },
                     {
                         "file": "decision_log.csv",
-                        "purpose": "Preseden komersial VP Sales Andi Wiratama (D-2025-11 approval 15% diskon volume 40+ outlet)"
+                        "purpose": "Commercial precedents from VP/CEO Andi Wiratama (D-2025-11 approving 15% volume discount for 40+ outlets)"
                     }
                 ],
                 "excluded_datasets": [
                     {
                         "file": "bugs.csv",
-                        "reason": "Parameter bug teknis adalah domain CS Churn (Tim 1) / Engineering. Tidak relevan untuk pemetaan hubungan pemegang keputusan sales."
+                        "reason": "Technical bug telemetry belongs to CS Churn (Team 1) / Engineering. Irrelevant for executive sales relationship mapping."
                     },
                     {
                         "file": "features.csv",
-                        "reason": "Roadmap fitur tidak memodifikasi bobot jalur koneksi antar manusia / alumni."
+                        "reason": "Product roadmap features do not modify interpersonal connection weights or alumni affinities."
                     },
                     {
                         "file": "support_tickets.csv",
-                        "reason": "Tiket komplain operasional tidak memberikan jalur akses ke C-level pengambil keputusan prospek baru."
+                        "reason": "Operational complaints do not provide access paths to enterprise C-level decision makers."
                     },
                     {
                         "file": "product_usage_daily.csv",
-                        "reason": "Log transaksi kasir harian digunakan untuk pemantauan kesehatan akun aktif, bukan pemetaan prospek."
+                        "reason": "Daily POS transaction telemetry monitors active account health, not prospect pathfinding."
                     }
                 ],
                 "mathematical_formula": {
                     "edge_weight": "W = f(Overlapping_Years, Interaction_Count, Seniority_Level)",
                     "path_score": "Path_Score = (Sum(W_edge) / Hop_Count) * Role_Authority_Multiplier",
                     "golden_paths": {
-                        "P01": "Sari Puspita (E03, AM C01) ➔ Rina Hapsari (K017, GM Ops P01 ex-C01) ➔ Steven Wijaya (K089, Dirut P01) [Score: 9.2]",
-                        "P04": "Wahyu Nugroho (E04, AM C06) ➔ Budi Santoso (K116, CFO C06) ➔ Hartono Gunawan (K028, Dirut P04 ex-PT Sentosa Abadi) [Score: 8.5]"
+                        "P01": "Sari Puspita (E03, AM C01) ➔ Rina Hapsari (K017, GM Ops P01 ex-C01) ➔ Steven Wijaya (K089, CEO P01) [Score: 9.2]",
+                        "P04": "Wahyu Nugroho (E04, AM C06) ➔ Budi Santoso (K116, CFO C06) ➔ Hartono Gunawan (K028, CEO P04 ex-PT Sentosa Abadi) [Score: 8.5]"
                     }
                 }
             }

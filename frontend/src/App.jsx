@@ -1,20 +1,57 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import EvidencePath from './EvidencePath';
 
 export default function App() {
   const [deals, setDeals] = useState([]);
   const [paramAnalysis, setParamAnalysis] = useState(null);
   const [currentProspectId, setCurrentProspectId] = useState('P01');
   const [pathfinderData, setPathfinderData] = useState(null);
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash.replace('#', '') : '';
+    return ['overview', 'pathfinder', 'graph', 'calculator'].includes(hash) ? hash : 'overview';
+  });
+
+  const navigateTo = (tab) => {
+    setActiveTab(tab);
+    if (typeof window !== 'undefined') {
+      window.location.hash = tab;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (tab === 'graph') {
+        setTimeout(() => {
+          if (window.initDynamicVisGraph) window.initDynamicVisGraph();
+          if (window.resetGraphView) window.resetGraphView();
+        }, 80);
+      } else if (tab === 'pathfinder') {
+        setTimeout(() => {
+          if (window.loadPathFinder) window.loadPathFinder(currentProspectId);
+        }, 80);
+      } else if (tab === 'calculator') {
+        setTimeout(() => {
+          if (window.loadEntitiesAndInitCalculator) window.loadEntitiesAndInitCalculator();
+          if (window.loadParameterAnalysis) window.loadParameterAnalysis();
+        }, 80);
+      }
+    }
+  };
 
   useEffect(() => {
-    // Add body classes
     document.body.className = "font-sans antialiased text-slate-900 bg-white";
     
     window.jumpToReactProspect = (id) => {
         setCurrentProspectId(id);
+        navigateTo('pathfinder');
         if (window.loadPathFinder) window.loadPathFinder(id);
     };
     window.jumpToProspect = window.jumpToReactProspect;
+
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (['overview', 'pathfinder', 'graph', 'calculator'].includes(hash)) {
+        setActiveTab(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
 
     const fetchData = async () => {
       try {
@@ -27,6 +64,14 @@ export default function App() {
       } catch (err) {}
     };
     fetchData();
+
+    // Initial load for scripts
+    if (window.loadPathFinder) window.loadPathFinder('P01');
+    if (window.loadEntitiesAndInitCalculator) window.loadEntitiesAndInitCalculator();
+    if (window.loadParameterAnalysis) window.loadParameterAnalysis();
+    if (window.initDynamicVisGraph) window.initDynamicVisGraph();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   useEffect(() => {
@@ -38,7 +83,6 @@ export default function App() {
     };
     fetchPath();
   }, [currentProspectId]);
-
   const activeDeals = useMemo(() => deals.filter(d => d.stage !== 'Closed Lost' && d.stage !== 'Closed Won'), [deals]);
   const totalPipeline = useMemo(() => activeDeals.reduce((sum, d) => sum + d.nilai_tahunan, 0), [activeDeals]);
   const formatIDR = (val) => "Rp " + (val / 1e6).toFixed(1) + "M";
@@ -62,32 +106,21 @@ export default function App() {
   const includedSets = paramAnalysis?.included_datasets?.length || 0;
   const totalSets = (paramAnalysis?.included_datasets?.length || 0) + (paramAnalysis?.excluded_datasets?.length || 0);
 
-  useEffect(() => {
-    document.body.className = "font-sans antialiased text-slate-900 bg-white";
-    
-    // Initialize apps logic
-    if (window.loadPathFinder) window.loadPathFinder('P01');
-    if (window.loadEntitiesAndInitCalculator) window.loadEntitiesAndInitCalculator();
-    if (window.loadParameterAnalysis) window.loadParameterAnalysis();
-    if (window.initDynamicVisGraph) window.initDynamicVisGraph();
-  }, []);
 
   return (
     <>
-
-
   {/* Toast Notification */}
   <div id="toast" className="fixed top-5 right-5 z-50 transform -translate-y-16 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-slate-900 text-white shadow-2xl border border-slate-700">
     <div id="toast-indicator" className="w-2.5 h-2.5 rounded-full bg-blue-400 animate-ping"></div>
     <span id="toast-text" className="text-xs font-medium font-sans">Draft copied to clipboard.</span>
   </div>
 
-  {/* Header Navigation */}
-  <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-100">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+  {/* Header Navigation with Multi-Page Tabs */}
+  <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
       
       {/* Logo */}
-      <a href="#" className="flex items-center gap-2.5 cursor-pointer">
+      <div onClick={() => navigateTo('overview')} className="flex items-center gap-2.5 cursor-pointer select-none">
         <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
           <svg className="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M7.001 15.085A1.5 1.5 0 0 1 9 16.5" />
@@ -98,29 +131,62 @@ export default function App() {
         </div>
         <div className="flex flex-col">
           <span className="font-bold text-xl tracking-tight text-slate-900">DEALGRAPH<span className="text-blue-600">.</span></span>
-          <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase font-mono">Find the people who matter</span>
+          <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase font-mono">PT KasirNusa Teknologi</span>
         </div>
-      </a>
+      </div>
 
-      {/* Navigation Links */}
-      <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-        <a href="#pathfinder" className="hover:text-blue-600 transition-colors">Path Console</a>
-        <a href="#graph-view" className="hover:text-blue-600 transition-colors">Network Graph</a>
-        <a href="#features" className="hover:text-blue-600 transition-colors">Core Workflow</a>
-        <a href="#pipeline-matrix" className="hover:text-blue-600 transition-colors">Pipeline Matrix</a>
-        <a href="#calculator" className="hover:text-blue-600 transition-colors">Path Calculator</a>
-        {/* <a href="#parameter-analysis" className="hover:text-blue-600 transition-colors">Data Logic</a> */}
+      {/* Multi-Page Navigation */}
+      <nav className="flex items-center gap-3 sm:gap-8">
+        <button 
+          onClick={() => navigateTo('overview')}
+          className={`cursor-pointer py-2 text-sm font-semibold transition-all ${
+            activeTab === 'overview' 
+              ? 'text-blue-600 font-bold border-b-2 border-blue-600' 
+              : 'text-slate-600 hover:text-slate-900 border-b-2 border-transparent'
+          }`}
+        >
+          Overview
+        </button>
+
+        <button 
+          onClick={() => navigateTo('pathfinder')}
+          className={`cursor-pointer py-2 text-sm font-semibold transition-all ${
+            activeTab === 'pathfinder' 
+              ? 'text-blue-600 font-bold border-b-2 border-blue-600' 
+              : 'text-slate-600 hover:text-slate-900 border-b-2 border-transparent'
+          }`}
+        >
+          Path Finder
+        </button>
+
+        <button 
+          onClick={() => navigateTo('graph')}
+          className={`cursor-pointer py-2 text-sm font-semibold transition-all ${
+            activeTab === 'graph' 
+              ? 'text-blue-600 font-bold border-b-2 border-blue-600' 
+              : 'text-slate-600 hover:text-slate-900 border-b-2 border-transparent'
+          }`}
+        >
+          Context Graph
+        </button>
+
+        <button 
+          onClick={() => navigateTo('calculator')}
+          className={`cursor-pointer py-2 text-sm font-semibold transition-all ${
+            activeTab === 'calculator' 
+              ? 'text-blue-600 font-bold border-b-2 border-blue-600' 
+              : 'text-slate-600 hover:text-slate-900 border-b-2 border-transparent'
+          }`}
+        >
+          Calculator &amp; Data
+        </button>
       </nav>
 
-      {/* Status Indicator */}
-      <div className="flex items-center gap-3">
-        <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Active
-        </span>
-      </div>
     </div>
   </header>
 
+  {/* ==================== PAGE 1: OVERVIEW TAB ==================== */}
+  <div className={activeTab === 'overview' ? 'block' : 'hidden'}>
   {/* Hero Section */}
   <section className="relative pt-12 pb-24 overflow-hidden">
     <div className="max-w-4xl mx-auto px-4 text-center">
@@ -419,80 +485,6 @@ export default function App() {
     </div>
   </section>
 
-  {/* Section 1: Interactive Path Finder Console */}
-  <section id="pathfinder" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-8">
-      <div>
-        <div className="pill-badge mb-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-          <span>Path Finder Console</span>
-        </div>
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Interactive Path Finder Console</h2>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">Select an enterprise target account to calculate the shortest connection path and generate contextual intro emails.</p>
-      </div>
-
-      {/* Account Switcher */}
-      <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 self-start sm:self-auto">
-        <button id="btn-p01" onClick={() => window.loadPathFinder('P01')} className="cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-md">
-          P01: Mandala Retail Group (Rp 252M)
-        </button>
-        <button id="btn-p04" onClick={() => window.loadPathFinder('P04')} className="cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-blue-600">
-          P04: Nirwana Hotel &amp; Resorts (Rp 147M)
-        </button>
-      </div>
-    </div>
-
-    {/* Results Injected by app.js */}
-    <div id="pathfinder-results" className="w-full">
-      <div className="p-12 text-center text-slate-400 bg-slate-50 rounded-3xl border border-slate-200">
-        <div className="inline-block animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mb-3"></div>
-        <p className="text-sm font-medium">Computing shortest and highest-weight path via Python REST API...</p>
-      </div>
-    </div>
-  </section>
-
-  {/* Section 2: Deep Blue Interactive Graph Canvas */}
-  <section id="graph-view" className="py-20 bg-gradient-to-b from-blue-700 via-blue-800 to-slate-900 text-white relative overflow-hidden scroll-mt-24">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      
-      <div className="text-center max-w-3xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold mb-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-ping"></span>
-          <span>Interactive Graph Canvas</span>
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Enterprise Relationship Graph</h2>
-        <p className="mt-2 text-sm text-blue-100">
-          Interactive map of KasirNusa internal reps, active client champions, alumni networks, and target decision makers.
-        </p>
-
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-          <button onClick={() => window.resetGraphView()} className="cursor-pointer px-4 py-1.5 rounded-full text-xs font-semibold bg-white text-blue-700 shadow-md hover:bg-blue-50 transition-all">
-            ↺ Re-center Canvas
-          </button>
-        </div>
-      </div>
-
-      <div className="relative w-full rounded-3xl bg-slate-900/90 border border-white/15 overflow-hidden shadow-2xl backdrop-blur-md">
-        
-        <div className="absolute top-4 left-4 z-10 pointer-events-none flex flex-col gap-2">
-          <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs font-mono text-blue-200">
-            NETWORK STATUS: <span className="text-emerald-400 font-bold">ONLINE</span> • ALGORITHM: <span className="text-white font-bold">Dijkstra Shortest Path</span>
-          </div>
-        </div>
-
-        <div className="absolute top-4 right-4 z-10 pointer-events-none hidden sm:flex flex-wrap items-center gap-2 text-[11px] font-mono text-slate-300 bg-black/60 px-3 py-1.5 rounded-xl border border-white/10">
-          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> KasirNusa</span>
-          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500"></span> Decision Maker</span>
-          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Prospect</span>
-          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Alumni / Ex-Org</span>
-        </div>
-
-        <div id="vis-container"></div>
-      </div>
-
-    </div>
-  </section>
-
   {/* Section 3: Core Workflow Pillars */}
   <section id="features" className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
     <div className="text-center max-w-3xl mx-auto mb-16">
@@ -681,7 +673,7 @@ export default function App() {
           <div className="space-y-4 max-w-sm mx-auto">
             
             <div className="bg-white rounded-2xl p-4 shadow-md border-l-4 border-blue-600">
-              <div className="text-xs font-bold text-blue-600 mb-0.5">▶ Step 1: Select Target Account</div>
+              <div className="text-xs font-bold text-blue-600 mb-0.5">Step 1: Select Target Account</div>
               <div className="text-xs font-semibold text-slate-900">Mandala Retail Group (P01) — 60 Outlets</div>
               <div className="text-[10px] text-slate-400">Deal stage: Proposal (Rp 252M / yr)</div>
             </div>
@@ -689,7 +681,7 @@ export default function App() {
             <div className="w-0.5 h-4 bg-white/60 mx-auto"></div>
 
             <div className="bg-white rounded-2xl p-4 shadow-md border-l-4 border-purple-600">
-              <div className="text-xs font-bold text-purple-600 mb-0.5">⚡ Step 2: Dijkstra Weighted Traversal</div>
+              <div className="text-xs font-bold text-purple-600 mb-0.5">Step 2: Context Graph</div>
               <div className="text-xs font-semibold text-slate-900">Detect Strongest Bridge Connection</div>
               <div className="text-[10px] text-slate-400">Bypass unresponsive IT manager ➔ Trace alumni link to Budi Santoso</div>
             </div>
@@ -697,7 +689,7 @@ export default function App() {
             <div className="w-0.5 h-4 bg-white/60 mx-auto"></div>
 
             <div className="bg-white rounded-2xl p-4 shadow-md border-l-4 border-emerald-600">
-              <div className="text-xs font-bold text-emerald-600 mb-0.5">⚐ Step 3: Contextual Intro Outreach</div>
+              <div className="text-xs font-bold text-emerald-600 mb-0.5">Step 3: Contextual Intro Outreach</div>
               <div className="text-xs font-semibold text-slate-900">Personalized Email Ready to Send</div>
               <div className="text-[10px] text-slate-400">Mentions Rina Hapsari and verified POS multi-outlet rollouts</div>
             </div>
@@ -734,6 +726,42 @@ export default function App() {
         </div>
       </div>
 
+    </div>
+  </section>
+
+  </div>
+
+  {/* ==================== PAGE 2: PATH FINDER TAB ==================== */}
+  <div className={activeTab === 'pathfinder' ? 'block' : 'hidden'}>
+  {/* Section 1: Interactive Path Finder Console */}
+  <section id="pathfinder" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5 mb-8">
+      <div>
+        <div className="pill-badge mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+          <span>Path Finder Console</span>
+        </div>
+        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Interactive Path Finder Console</h2>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">Select an enterprise target account to calculate the shortest connection path and generate contextual intro emails.</p>
+      </div>
+
+      {/* Account Switcher */}
+      <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 self-start sm:self-auto">
+        <button id="btn-p01" onClick={() => window.loadPathFinder('P01')} className="cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all bg-blue-600 text-white shadow-md">
+          P01: Mandala Retail Group (Rp 252M)
+        </button>
+        <button id="btn-p04" onClick={() => window.loadPathFinder('P04')} className="cursor-pointer px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-blue-600">
+          P04: Nirwana Hotel &amp; Resorts (Rp 147M)
+        </button>
+      </div>
+    </div>
+
+    {/* Results Injected by app.js */}
+    <div id="pathfinder-results" className="w-full">
+      <div className="p-12 text-center text-slate-400 bg-slate-50 rounded-3xl border border-slate-200">
+        <div className="inline-block animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mb-3"></div>
+        <p className="text-sm font-medium">Computing shortest and highest-weight path via Python REST API...</p>
+      </div>
     </div>
   </section>
 
@@ -812,7 +840,7 @@ export default function App() {
               <span className="text-[10px] font-bold text-blue-700 font-mono">Rp 252M</span>
             </div>
             <p className="text-[11px] text-slate-600">60 Outlets • DM: Budi Santoso</p>
-            <span className="inline-block text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">🏆 Score: 8.8/10 (Ready)</span>
+            <span className="inline-block text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Score: 8.8/10 (Ready)</span>
           </div>
         </div>
 
@@ -830,7 +858,7 @@ export default function App() {
               <span className="text-[10px] font-bold text-purple-700 font-mono">Rp 147M</span>
             </div>
             <p className="text-[11px] text-slate-600">35 Outlets • DM: Hendra Wijaya</p>
-            <span className="inline-block text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">🏆 Score: 8.2/10 (Ready)</span>
+            <span className="inline-block text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Score: 8.2/10 (Ready)</span>
           </div>
         </div>
 
@@ -838,20 +866,97 @@ export default function App() {
     </div>
   </section>
 
+  </div>
+
+  {/* ==================== PAGE 3: CONTEXT GRAPH TAB ==================== */}
+  <div className={activeTab === 'graph' ? 'block' : 'hidden'}>
+  {/* Section 2: Deep Blue Interactive Graph Canvas */}
+  <section id="graph-view" className="py-20 bg-gradient-to-b from-blue-700 via-blue-800 to-slate-900 text-white relative overflow-hidden scroll-mt-24">
+    <div className="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-10">
+      
+      <div className="text-center max-w-3xl mx-auto mb-10">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-semibold mb-3">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-300 animate-ping"></span>
+          <span>Interactive Graph Canvas</span>
+        </div>
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Enterprise Relationship Graph</h2>
+        <p className="mt-2 text-sm text-blue-100">
+          Interactive map of KasirNusa internal reps, active client champions, alumni networks, and target decision makers.
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div className="inline-flex p-1 rounded-full bg-black/40 border border-white/20 backdrop-blur-md shadow-lg">
+            <button 
+              id="graph-btn-all"
+              onClick={() => window.filterGraph && window.filterGraph('ALL')} 
+              className="cursor-pointer px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-white text-blue-700 shadow-md"
+            >
+              All (P01 &amp; P04)
+            </button>
+            <button 
+              id="graph-btn-p01"
+              onClick={() => window.filterGraph && window.filterGraph('P01')} 
+              className="cursor-pointer px-4 py-1.5 rounded-full text-xs font-bold transition-all text-white/80 hover:text-white"
+            >
+              Focus P01: Mandala
+            </button>
+            <button 
+              id="graph-btn-p04"
+              onClick={() => window.filterGraph && window.filterGraph('P04')} 
+              className="cursor-pointer px-4 py-1.5 rounded-full text-xs font-bold transition-all text-white/80 hover:text-white"
+            >
+              Focus P04: Nirwana
+            </button>
+          </div>
+
+          <button onClick={() => window.resetGraphView()} className="cursor-pointer px-4 py-1.5 rounded-full text-xs font-semibold bg-white/15 hover:bg-white/25 text-white border border-white/20 shadow-md transition-all">
+            Re-center Canvas
+          </button>
+        </div>
+      </div>
+
+      <div className="relative w-full rounded-3xl bg-slate-900/90 border border-white/15 overflow-hidden shadow-2xl backdrop-blur-md">
+        
+        <div className="absolute top-4 left-4 z-10 pointer-events-none flex flex-col gap-2">
+          <div className="px-3 py-1.5 rounded-lg bg-black/60 border border-white/10 text-xs font-mono text-blue-200">
+            NETWORK STATUS: <span className="text-emerald-400 font-bold">ONLINE</span> • ALGORITHM: <span className="text-white font-bold">Context Graph Path</span>
+          </div>
+        </div>
+
+        <div className="absolute top-4 right-4 z-10 pointer-events-none hidden sm:flex flex-wrap items-center gap-2 text-[11px] font-mono text-slate-300 bg-black/60 px-3 py-1.5 rounded-xl border border-white/10">
+          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500"></span> KasirNusa</span>
+          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-500"></span> Decision Maker</span>
+          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Prospect</span>
+          <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Alumni / Ex-Org</span>
+        </div>
+
+        <div id="vis-container"></div>
+      </div>
+
+    </div>
+  </section>
+
+  {/* Real Evidence Path & Timeline Section */}
+  <EvidencePath />
+
+  </div>
+
+  {/* ==================== PAGE 4: CALCULATOR & DATA GOVERNANCE TAB ==================== */}
+  <div className={activeTab === 'calculator' ? 'block' : 'hidden'}>
   {/* Section 6: Custom Pathfinding Calculator */}
   <section id="calculator" className="py-20 bg-white border-t border-slate-100 scroll-mt-24">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div className="text-center max-w-3xl mx-auto mb-12">
         <div className="pill-badge mb-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-          <span>Simulation Mode</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span>
+          <span>Business Relationship Simulation</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
           Custom Path Calculator
         </h2>
         <p className="mt-2 text-sm text-slate-500">
-          Simulate connection paths between any entities and review the mathematical weight breakdown.
+          Simulate connection paths between entities and evaluate relationship strength and validity in depth.
         </p>
       </div>
 
@@ -860,7 +965,7 @@ export default function App() {
         <div className="lg:col-span-5 bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm space-y-5">
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">1. Query Mode</label>
-            <select id="calc-mode" onChange={() => window.onCalcModeChange()} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="calc-mode" onChange={() => window.onCalcModeChange()} className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
               <option value="company_to_company">Company ➔ Company</option>
               <option value="people_to_company">Person ➔ Company</option>
               <option value="company_to_people">Company ➔ Person</option>
@@ -869,18 +974,18 @@ export default function App() {
 
           <div>
             <label id="lbl-calc-source" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">2. Source Entity:</label>
-            <select id="calc-source" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="calc-source" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </select>
           </div>
 
           <div>
             <label id="lbl-calc-target" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">3. Target Entity:</label>
-            <select id="calc-target" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select id="calc-target" className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </select>
           </div>
 
-          <button onClick={() => window.runCalculatorQuery()} className="cursor-pointer w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-md shadow-blue-500/25 active:scale-95 flex items-center justify-center gap-2">
-            <span>Calculate Path &amp; Edge Weights</span>
+          <button onClick={() => window.runCalculatorQuery()} className="cursor-pointer w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition-all shadow-md shadow-indigo-500/25 active:scale-95 flex items-center justify-center gap-2">
+            <span>Calculate Relationship Path</span>
             <span className="text-sm">➔</span>
           </button>
         </div>
@@ -896,7 +1001,7 @@ export default function App() {
     </div>
   </section>
 
-  {/* Section 7: Parameter & Data Governance
+  {/* Section 7: Parameter & Data Governance */}
   <section id="parameter-analysis" className="py-20 bg-slate-50 border-t border-slate-100 scroll-mt-24">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="text-center max-w-3xl mx-auto mb-14">
@@ -908,27 +1013,35 @@ export default function App() {
           Parameter &amp; Dataset Governance
         </h2>
         <p className="mt-2 text-sm text-slate-500">
-          Rationale behind dataset selection and the complete exclusion of support ticket noise to maintain clean scoring.
+          Rationale behind dataset selection (7 files used) and the elimination of support ticket noise for sales paths.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" id="parameter-details-container">
       </div>
     </div>
-  </section> */}
-
+  </section>
+  </div>
   {/* Footer */}
   <footer className="border-t border-slate-100 bg-white py-12">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
       <div className="flex items-center gap-2.5">
-        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-bold font-mono">
-          KN
+        <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+          <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7.001 15.085A1.5 1.5 0 0 1 9 16.5" />
+            <circle cx="18.5" cy="8.5" r="3.5" />
+            <circle cx="7.5" cy="16.5" r="5.5" />
+            <circle cx="7.5" cy="4.5" r="2.5" />
+          </svg>
         </div>
-        <span className="font-bold text-sm text-slate-900">PT KasirNusa Teknologi // Team 3 Sales Intelligence</span>
+        <div className="flex flex-col">
+          <span className="font-bold text-sm tracking-tight text-slate-900">DEALGRAPH<span className="text-blue-600">.</span></span>
+          <span className="text-[10px] text-slate-400 font-semibold tracking-wider uppercase font-mono">PT KasirNusa Teknologi</span>
+        </div>
       </div>
 
-      <div className="text-xs text-slate-400 text-center sm:text-right">
-        Warm Intro Path Finder Engine • 2026
+      <div className="text-xs text-slate-400 text-center sm:text-right font-medium">
+        Context Graph &amp; Relationship Path Finder • 2026
       </div>
     </div>
   </footer>
